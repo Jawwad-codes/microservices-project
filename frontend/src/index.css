@@ -1,0 +1,70 @@
+/** @format */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0b0e14;
+    color: #e7eaf2;
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: #7a5f26;
+    color: #e7eaf2;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #232938 transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232938;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-border rounded-xl p-5;
+  }
+  .input {
+    @apply w-full bg-raised border border-border rounded-lg px-3 py-2 text-sm text-white placeholder-muted outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-colors;
+  }
+  .btn-primary {
+    @apply bg-accent text-[#1A1300] font-semibold text-sm px-4 py-2.5 rounded-lg hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-muted border border-border text-sm px-4 py-2 rounded-lg hover:text-white hover:border-muted active:scale-[0.98] transition-all;
+  }
+  .btn-danger {
+    @apply bg-down/10 text-down border border-down/30 text-sm px-4 py-2 rounded-lg hover:bg-down/20 active:scale-[0.98] transition-all;
+  }
+  .badge-paid {
+    @apply bg-up/10 text-up text-[10px] font-mono px-2 py-0.5 rounded-full uppercase tracking-wider;
+  }
+  .badge-failed {
+    @apply bg-down/10 text-down text-[10px] font-mono px-2 py-0.5 rounded-full uppercase tracking-wider;
+  }
+  .badge-pending {
+    @apply bg-info/10 text-info text-[10px] font-mono px-2 py-0.5 rounded-full uppercase tracking-wider;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-white hover:bg-raised transition-all cursor-pointer;
+  }
+  .nav-link.active {
+    @apply text-white bg-raised border border-border;
+  }
+}
