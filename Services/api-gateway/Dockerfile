@@ -1,7 +1,19 @@
-FROM node:20-alpine
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+
+RUN npm ci --omit=dev
+
 COPY . .
+
+FROM gcr.io/distroless/nodejs20-debian12:nonroot
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/package.json ./package.json
+
 EXPOSE 4000
-CMD ["npm", "start"]
+
+CMD ["src/server.js"]
