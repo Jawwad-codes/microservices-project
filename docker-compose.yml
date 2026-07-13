@@ -1,0 +1,87 @@
+version: 'latest'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+   
+  api-gateway:
+    build:
+      context: ./Services/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+
+    env_file:
+      - ./Services/api-gateway/.env.docker
+  user-service:
+    build:
+      context: ./Services/user-service
+      dockerfile: Dockerfile
+    ports:
+      - "4001:4001"
+
+    env_file:
+      - ./Services/user-service/.env.docker
+    depends_on:
+      - api-gateway
+  
+  product-service:
+    build:
+      context: ./Services/product-service
+      dockerfile: Dockerfile
+    ports:
+      - "4002:4002"
+  
+    depends_on:
+      - api-gateway  
+    env_file:
+      - ./Services/product-service/.env.docker
+
+
+  order-service:
+    build:
+      context: ./Services/order-service
+      dockerfile: Dockerfile
+    ports:
+      - "4003:4003"
+
+    depends_on:
+      - api-gateway
+    env_file:
+      - ./Services/order-service/.env.docker    
+
+  payment-service:
+    build:
+      context: ./Services/payment-service
+      dockerfile: Dockerfile
+    ports:
+      - "4004:4004"
+   
+    depends_on:
+      - api-gateway
+    env_file:
+      - ./Services/payment-service/.env.docker
+
+  notification-service:
+    build:
+      context: ./Services/notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "4005:4005"
+  
+    depends_on:
+      - api-gateway
+    env_file:
+      - ./Services/notification-service/.env.docker        
+
+
+
+networks:
+  default:
+    name: microservices-network
+    driver: bridge
+
