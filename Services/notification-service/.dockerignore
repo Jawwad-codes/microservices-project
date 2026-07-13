@@ -15,7 +15,8 @@ Dockerfile
 # Environment files
 .env
 .env.*
-!.env.example
+# Except Docker env
+!.env.docker
 
 # Documentation
 README.md

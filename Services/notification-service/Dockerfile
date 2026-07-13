@@ -1,9 +1,10 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci 
 COPY . .
 RUN npx prisma generate --schema=./src/prisma/schema.prisma
+RUN npm prune --omit=dev
 FROM gcr.io/distroless/nodejs20-debian12:nonroot
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules

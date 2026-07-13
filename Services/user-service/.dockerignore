@@ -14,11 +14,7 @@ Dockerfile
 
 # Environment files
 
-.env
-.env.*
-# Except Docker env
-!.env.docker
-.env.example
+!.env.docker          # ← Yeh sabse important - exception ko last mein rakho
 
 # Documentation
 README.md
@@ -41,7 +37,7 @@ logs
 .DS_Store
 Thumbs.db
 
-# Build artifacts (if applicable)
+# Build artifacts
 dist
 build
 
