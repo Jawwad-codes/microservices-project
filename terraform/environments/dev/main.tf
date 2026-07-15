@@ -51,6 +51,29 @@ module "iam" {
 module "ecr" {
   source = "../../modules/ecr"
 
-  repositories          = var.repositories
-  image_tag_mutability  = var.image_tag_mutability
+  repositories         = var.repositories
+  image_tag_mutability = var.image_tag_mutability
+}
+
+
+module "s3" {
+  source = "../../modules/s3"
+
+  bucket_name   = var.bucket_name
+  force_destroy = var.force_destroy
+  tags          = var.tags
+}
+
+module "cloudfront" {
+
+  source = "../../modules/cloudfront"
+
+  bucket_name        = module.s3.bucket_name
+  bucket_arn         = module.s3.bucket_arn
+  bucket_domain_name = module.s3.bucket_domain_name
+
+  tags = {
+    Environment = "dev"
+    Project     = "Microservices"
+  }
 }
