@@ -18,15 +18,10 @@ variable "private_subnet_cidrs" {
   type = list(string)
 }
 
-variable "name" {
-  type = string
-}
 
-variable "description" {
-  type = string
-}
 
-variable "ingress_rules" {
+
+variable "alb_ingress_rules" {
   type = list(object({
     from_port   = number
     to_port     = number
@@ -35,11 +30,43 @@ variable "ingress_rules" {
   }))
 }
 
-variable "egress_rules" {
+variable "eks_node_ingress_rules" {
   type = list(object({
     from_port   = number
     to_port     = number
     protocol    = string
     cidr_blocks = list(string)
   }))
+}
+
+variable "rds_ingress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+}
+
+variable "default_egress_rules" {
+  type = list(object({
+    from_port   = number
+    to_port     = number
+    protocol    = string
+    cidr_blocks = list(string)
+  }))
+}
+
+variable "project_name" {
+  type = string
+}
+
+variable "repositories" {
+  description = "List of ECR repositories"
+  type        = list(string)
+}
+
+variable "image_tag_mutability" {
+  type    = string
+  default = "MUTABLE"
 }

@@ -19,18 +19,15 @@ variable "private_subnet_cidrs" {
 }
 
 
-variable "nat-gtw-name" {
-  type        = string
-}
+# variable "nat-gtw-name" {
+#   type        = string
+# }
 
-variable "nat-gtw-eip-name" {
-  type        = string
-}
+# variable "nat-gtw-eip-name" {
+#   type        = string
+# }
 
-variable "nat-gtw-eip-allocation-id" {
-  type        = string
-}
+# variable "nat-gtw-eip-allocation-id" {
+#   type        = string
+# }
 
-variable "nat-gtw-subnet-id" {
-  type        = string
-}
