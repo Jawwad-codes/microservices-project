@@ -28,6 +28,16 @@ module "eks_node_sg" {
   egress_rules  = var.default_egress_rules
 }
 
+module "eks_cluster_sg" {
+  source = "../../modules/security-groups"
+
+  name          = "eks-cluster-sg"
+  description   = "EKS Cluster Security Group"
+  vpc_id        = module.vpc.vpc_id
+  ingress_rules = []
+  egress_rules  = var.default_egress_rules
+}
+
 module "rds_sg" {
   source = "../../modules/security-groups"
 
@@ -96,6 +106,38 @@ module "rds" {
   vpc_security_group_ids = [
     module.rds_sg.security_group_id
   ]
+
+  tags = {
+    Environment = "dev"
+    Project     = "Microservices"
+  }
+}
+
+
+
+module "eks" {
+
+  source = "../../modules/eks"
+
+  cluster_name = "microservices-dev"
+
+  cluster_role_arn = module.iam.cluster_role_arn
+
+  node_role_arn = module.iam.node_role_arn
+
+  subnet_ids = module.vpc.private_subnets
+
+  security_group_ids = [
+    module.eks_node_sg.security_group_id
+  ]
+
+  instance_types = ["t3.medium"]
+
+  desired_size = 2
+
+  min_size = 2
+
+  max_size = 2
 
   tags = {
     Environment = "dev"
