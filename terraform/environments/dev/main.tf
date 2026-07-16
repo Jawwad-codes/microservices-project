@@ -77,3 +77,28 @@ module "cloudfront" {
     Project     = "Microservices"
   }
 }
+
+
+module "rds" {
+
+  source = "../../modules/rds"
+
+  identifier = "microservices-db"
+
+  db_name = var.db_name
+
+  username = var.db_username
+
+  password = var.db_password
+
+  private_subnet_ids = module.vpc.private_subnets
+
+  vpc_security_group_ids = [
+    module.rds_sg.security_group_id
+  ]
+
+  tags = {
+    Environment = "dev"
+    Project     = "Microservices"
+  }
+}
