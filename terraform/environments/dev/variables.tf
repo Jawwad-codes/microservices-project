@@ -100,9 +100,7 @@ variable "db_password" {
 variable cluster_name {
   type = string
 }
-variable "eks_node_group_name" {
-  type = string
-}
+
 
 variable cluster_version {
   type = string

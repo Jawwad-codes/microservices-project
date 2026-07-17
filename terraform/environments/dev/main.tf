@@ -119,7 +119,9 @@ module "eks" {
 
   source = "../../modules/eks"
 
-  cluster_name = "microservices-dev"
+  cluster_name = var.cluster_name
+
+  cluster_version = var.cluster_version
 
   cluster_role_arn = module.iam.cluster_role_arn
 
@@ -141,6 +143,6 @@ module "eks" {
 
   tags = {
     Environment = "dev"
-    Project     = "Microservices"
+    Project = "Microservices"
   }
 }
