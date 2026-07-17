@@ -64,4 +64,3 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-k8s/secrets/app-secret.yaml

@@ -56,8 +56,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
 
-          envFrom:
-            - configMapRef:
-                name: app-config
-            - secretRef:
-                name: app-secret
+          env:
+            - name: NODE_ENV
+              value: "production"
