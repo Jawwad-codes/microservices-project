@@ -65,5 +65,5 @@ override.tf.json
 terraform.rc
 
 # Kubernetes secrets
-k8/secrets/
+k8/secrets/app-secret.yaml
 
