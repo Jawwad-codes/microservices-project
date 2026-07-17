@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: user-service
+  namespace: microservices
+  labels:
+    app: user-service
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: user-service
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  template:
+    metadata:
+      labels:
+        app: user-service
+
+    spec:
+      containers:
+        - name: user-service
+          image: user-service:latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 4001
+
+          env:
+            - name: PORT
+              value: "4001"
+
+            - name: NODE_ENV
+              value: "production"
+
+            - name: DATABASE_URL
+              value: "postgresql://postgres:jnba2236$$@postgres:5432/user_db"
+
+            - name: JWT_SECRET
+              value: "d3c53c608056cad171daae923b0a3e3685014d84cf33c57a1c52128cb387d4da7edbdc887278ada73aa27b7a6f2b25927da6f66decf361bd8c9fca5cd1579d40"
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 20
+            periodSeconds: 10
