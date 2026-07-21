@@ -29,9 +29,6 @@ jobs:
           version: v0.20.0
           cluster_name: local-cluster
 
-      ####################################################
-      # Build & Test All Services
-      ####################################################
       - name: Build & Test Services
         shell: bash
         run: |
@@ -49,9 +46,6 @@ jobs:
             kind load docker-image $service:latest --name local-cluster
           done
 
-      ####################################################
-      # Deploy Kubernetes Resources
-      ####################################################
       - name: Create Namespace
         run: kubectl apply -f k8s/namespace/namespace.yaml
 
@@ -61,9 +55,6 @@ jobs:
       - name: Apply ConfigMap
         run: kubectl apply -f k8s/configmaps/app-config.yaml
 
-      ####################################################
-      # Install NGINX Ingress
-      ####################################################
       - name: Install NGINX Ingress
         run: |
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
@@ -74,15 +65,9 @@ jobs:
             -n ingress-nginx \
             --timeout=300s
 
-      ####################################################
-      # Deploy Application
-      ####################################################
       - name: Apply Kubernetes Manifests
         run: kubectl apply -R -f k8s
 
-      ####################################################
-      # Wait for Rollout
-      ####################################################
       - name: Wait for Deployments
         shell: bash
         run: |
@@ -95,9 +80,6 @@ jobs:
               --timeout=300s
           done
 
-      ####################################################
-      # Debug (Always)
-      ####################################################
       - name: Cluster Information
         if: always()
         run: |
@@ -113,9 +95,6 @@ jobs:
           echo "========== INGRESS =========="
           kubectl get ingress -A
 
-      ####################################################
-      # Health Check
-      ####################################################
       - name: Health Check
         shell: bash
         run: |
@@ -132,9 +111,6 @@ jobs:
 
           echo "Application is healthy."
 
-      ####################################################
-      # Logs on Failure
-      ####################################################
       - name: Show API Gateway Logs
         if: failure()
         run: |
