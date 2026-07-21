@@ -1,15 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
+
 metadata:
   name: api-gateway-ingress
   namespace: microservices
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+
 spec:
   ingressClassName: nginx
+
   rules:
-    - host: api.local   # ← Yeh important hai
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix

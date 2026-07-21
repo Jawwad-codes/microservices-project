@@ -8,14 +8,14 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      "/api": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
-      },
-      "/health": {
-        target: "http://localhost:8080",
-        changeOrigin: true,
-      },
+      "/api": { target: "http://localhost:8080", changeOrigin: true },
+      "/health": { target: "http://localhost:8080", changeOrigin: true },
     },
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/tests/setup.js",
+    css: false,
   },
 });
