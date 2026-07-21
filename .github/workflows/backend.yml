@@ -43,7 +43,7 @@ jobs:
             docker build -t $service:latest ./Services/$service
             
             # Load into Kind
-            kind load docker-image $service:latest
+            kind load docker-image $service:latest --name local-cluster
           done
 
       ####################################################
