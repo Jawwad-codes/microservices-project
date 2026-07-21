@@ -3,10 +3,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { checkHealth } from "../api/client";
 
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || "http://localhost:4000";
+const GATEWAY = import.meta.env.VITE_GATEWAY_URL || "http://localhost:8080";
 
 const SERVICE_PORTS = {
-  "api-gateway": 4000,
+  "api-gateway": 8080,
   "user-service": 4001,
   "product-service": 4002,
   "order-service": 4003,
@@ -25,7 +25,7 @@ import clsx from "clsx";
 
 const SERVICE_META = {
   "api-gateway": {
-    port: 4000,
+    port: 8080,
     role: "Reverse proxy & single entry point",
     db: null,
   },

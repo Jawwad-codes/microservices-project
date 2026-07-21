@@ -2,7 +2,7 @@
 
 import axios from "axios";
 
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || "http://localhost:4000";
+const GATEWAY = "http://localhost:8080";
 
 const client = axios.create({ baseURL: GATEWAY });
 
