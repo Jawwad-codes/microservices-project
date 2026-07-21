@@ -4,11 +4,15 @@ name: Backend CI - Local Kubernetes (Kind)
 
 on:
   push:
-    branches: [development]
+    branches:
+      - development
 
 jobs:
   backend-ci:
-    runs-on: ubuntu-latest # ← Ye change kiya hai
+    runs-on: ubuntu-latest
+
+    env:
+      SERVICES: "user-service product-service order-service payment-service notification-service api-gateway"
 
     steps:
       - name: Checkout Repository
@@ -17,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
 
       - name: Setup Kind Cluster
         uses: helm/kind-action@v1
@@ -29,41 +33,50 @@ jobs:
       # Build & Test All Services
       ####################################################
       - name: Build & Test Services
+        shell: bash
         run: |
-          services=("user-service" "product-service" "order-service" "payment-service" "notification-service" "api-gateway")
+          for service in $SERVICES
+          do
+            echo "=============================="
+            echo "Processing $service"
+            echo "=============================="
 
-          for service in "${services[@]}"; do
-            echo "🔨 Processing $service..."
-            
-            # Install & Test
             npm ci --prefix Services/$service
-            npm test --prefix Services/$service -- --watchAll=false || echo "⚠️ Tests failed for $service"
-            
-            # Build Docker Image
+            npm test --prefix Services/$service -- --watchAll=false
+
             docker build -t $service:latest ./Services/$service
-            
-            # Load into Kind
+
             kind load docker-image $service:latest --name local-cluster
           done
 
       ####################################################
-      # Deploy to Kind
+      # Deploy Kubernetes Resources
       ####################################################
       - name: Create Namespace
         run: kubectl apply -f k8s/namespace/namespace.yaml
-      - name: create cofig or secrets
+
+      - name: Apply Secrets
+        run: kubectl apply -R -f k8s/secrets/
+
+      - name: Apply ConfigMap
+        run: kubectl apply -f k8s/configmaps/app-config.yaml
+
+      ####################################################
+      # Install NGINX Ingress
+      ####################################################
+      - name: Install NGINX Ingress
         run: |
-          kubectl apply -R -f k8s/secrets/
-          kubectl apply -f k8s/configmaps/app-config.yaml
-      - name: install ingress
-        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+
       - name: Wait for Ingress Controller
         run: |
-          kubectl wait \
-          --namespace ingress-nginx \
-          --for=condition=ready pod \
-          --selector=app.kubernetes.io/component=controller \
-          --timeout=300s
+          kubectl rollout status deployment/ingress-nginx-controller \
+            -n ingress-nginx \
+            --timeout=300s
+
+      ####################################################
+      # Deploy Application
+      ####################################################
       - name: Apply Kubernetes Manifests
         run: kubectl apply -R -f k8s
 
@@ -71,20 +84,60 @@ jobs:
       # Wait for Rollout
       ####################################################
       - name: Wait for Deployments
+        shell: bash
         run: |
-          services=("user-service" "product-service" "order-service" "payment-service" "notification-service" "api-gateway")
-          for svc in "${services[@]}"; do
-            echo "Waiting for $svc..."
-            kubectl rollout status deployment/$svc -n microservices --timeout=180s || echo "Warning: $svc rollout timeout"
+          for service in $SERVICES
+          do
+            echo "Waiting for $service..."
+
+            kubectl rollout status deployment/$service \
+              -n microservices \
+              --timeout=300s
           done
+
+      ####################################################
+      # Debug (Always)
+      ####################################################
+      - name: Cluster Information
+        if: always()
+        run: |
+          echo "========== PODS =========="
+          kubectl get pods -A
+
+          echo "========== SERVICES =========="
+          kubectl get svc -A
+
+          echo "========== ENDPOINTS =========="
+          kubectl get endpoints -A
+
+          echo "========== INGRESS =========="
+          kubectl get ingress -A
 
       ####################################################
       # Health Check
       ####################################################
       - name: Health Check
+        shell: bash
         run: |
-          echo "Performing health check..."
-          kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8080:80 &
+          kubectl port-forward \
+            -n ingress-nginx \
+            service/ingress-nginx-controller \
+            8080:80 &
+
           sleep 15
-          curl --fail http://localhost:8080/health || exit 1
-          echo "✅ Health check passed!"
+
+          curl -v --retry 10 --retry-delay 5 --fail http://localhost:8080/health
+
+          curl -v --retry 10 --retry-delay 5 --fail http://localhost:8080/health/all
+
+          echo "Application is healthy."
+
+      ####################################################
+      # Logs on Failure
+      ####################################################
+      - name: Show API Gateway Logs
+        if: failure()
+        run: |
+          kubectl logs deployment/api-gateway \
+            -n microservices \
+            --tail=200 || true
