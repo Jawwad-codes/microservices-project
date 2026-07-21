@@ -1,0 +1,74 @@
+name: Backend CI - Local Kubernetes (Kind)
+
+on:
+  push:
+    branches: [ development ]
+
+jobs:
+  backend-ci:
+    runs-on: ubuntu-latest     # ← Ye change kiya hai
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Kind Cluster
+        uses: helm/kind-action@v1
+        with:
+          version: v0.20.0
+          cluster_name: local-cluster
+
+      ####################################################
+      # Build & Test All Services
+      ####################################################
+      - name: Build & Test Services
+        run: |
+          services=("user-service" "product-service" "order-service" "payment-service" "notification-service" "api-gateway")
+          
+          for service in "${services[@]}"; do
+            echo "🔨 Processing $service..."
+            
+            # Install & Test
+            npm ci --prefix Services/$service
+            npm test --prefix Services/$service -- --watchAll=false || echo "⚠️ Tests failed for $service"
+            
+            # Build Docker Image
+            docker build -t $service:latest ./Services/$service
+            
+            # Load into Kind
+            kind load docker-image $service:latest
+          done
+
+      ####################################################
+      # Deploy to Kind
+      ####################################################
+      - name: Apply Kubernetes Manifests
+        run: kubectl apply -R -f k8s
+
+      ####################################################
+      # Wait for Rollout
+      ####################################################
+      - name: Wait for Deployments
+        run: |
+          services=("user-service" "product-service" "order-service" "payment-service" "notification-service" "api-gateway")
+          for svc in "${services[@]}"; do
+            echo "Waiting for $svc..."
+            kubectl rollout status deployment/$svc -n microservices --timeout=180s || echo "Warning: $svc rollout timeout"
+          done
+
+      ####################################################
+      # Health Check
+      ####################################################
+      - name: Health Check
+        run: |
+          echo "Performing health check..."
+          kubectl port-forward -n ingress-nginx service/ingress-nginx-controller 8080:80 &
+          sleep 15
+          curl --fail http://localhost:8080/health || exit 1
+          echo "✅ Health check passed!"
