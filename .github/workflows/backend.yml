@@ -1,13 +1,15 @@
+# @format
+
 name: Backend CI - Local Kubernetes (Kind)
 
 on:
   push:
-    branches: [ development ]
+    branches: [development]
 
 jobs:
   backend-ci:
-    runs-on: ubuntu-latest     # ← Ye change kiya hai
-    
+    runs-on: ubuntu-latest # ← Ye change kiya hai
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -15,8 +17,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 24
+          cache: "npm"
 
       - name: Setup Kind Cluster
         uses: helm/kind-action@v1
@@ -30,7 +32,7 @@ jobs:
       - name: Build & Test Services
         run: |
           services=("user-service" "product-service" "order-service" "payment-service" "notification-service" "api-gateway")
-          
+
           for service in "${services[@]}"; do
             echo "🔨 Processing $service..."
             
