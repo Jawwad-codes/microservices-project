@@ -55,6 +55,8 @@ jobs:
         run: |
           kubectl apply -R -f k8s/secrets/
           kubectl apply -f k8s/configmaps/app-config.yaml
+      - name: install ingress
+        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
       - name: Apply Kubernetes Manifests
         run: kubectl apply -R -f k8s
 
