@@ -49,6 +49,12 @@ jobs:
       ####################################################
       # Deploy to Kind
       ####################################################
+      - name: Create Namespace
+        run: kubectl apply -f k8s/namespace/namespace.yaml
+      - name: create cofig or secrets
+        run: |
+          kubectl apply -R -f k8s/secrets/
+          kubectl apply -f k8s/configmaps/app-config.yaml
       - name: Apply Kubernetes Manifests
         run: kubectl apply -R -f k8s
 
