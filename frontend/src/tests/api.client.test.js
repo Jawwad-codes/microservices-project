@@ -1,23 +1,36 @@
-/** @format */
+/**
+ * API Client tests
+ *
+ * The client calls axios.create() which returns an instance.
+ * All API calls go through that instance, not the top-level axios object.
+ *
+ * vi.mock() is hoisted, so we cannot reference variables declared outside it.
+ * We build the mock instance INSIDE the factory and expose it on the constructor.
+ *
+ * @format
+ */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock axios before importing client
 vi.mock("axios", () => {
-  const mockAxios = {
-    create: vi.fn(() => mockAxios),
+  // Build the instance inside the factory — no out-of-scope references
+  const instance = {
     get: vi.fn(),
     post: vi.fn(),
     put: vi.fn(),
     patch: vi.fn(),
     delete: vi.fn(),
-    interceptors: {
-      request: { use: vi.fn() },
-      response: { use: vi.fn() },
-    },
-    defaults: { headers: { common: {} } },
+    interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
   };
-  return { default: mockAxios };
+
+  const axiosMock = {
+    create: vi.fn(() => instance),
+    get: vi.fn(), // used directly by checkHealth
+    // Expose instance so tests can reference it after import
+    _instance: instance,
+  };
+
+  return { default: axiosMock };
 });
 
 import axios from "axios";
@@ -30,138 +43,144 @@ import {
   checkHealth,
 } from "../api/client";
 
-beforeEach(() => vi.clearAllMocks());
+// The axios instance that client.js uses internally
+const inst = axios._instance;
 
-describe("API Client — authApi", () => {
-  it("authApi.register calls POST /api/auth/register", () => {
-    authApi.register({ name: "Test", email: "a@b.com", password: "123456" });
-    expect(axios.post).toHaveBeenCalledWith(
+beforeEach(() => {
+  vi.clearAllMocks();
+  // Restore create so the module keeps using the same instance
+  axios.create.mockReturnValue(inst);
+});
+
+// ── authApi ───────────────────────────────────────────────────────────────────
+describe("authApi", () => {
+  it("register → POST /api/auth/register", () => {
+    authApi.register({ name: "T", email: "a@b.com", password: "123456" });
+    expect(inst.post).toHaveBeenCalledWith(
       "/api/auth/register",
       expect.any(Object),
     );
   });
 
-  it("authApi.login calls POST /api/auth/login", () => {
+  it("login → POST /api/auth/login", () => {
     authApi.login({ email: "a@b.com", password: "123456" });
-    expect(axios.post).toHaveBeenCalledWith(
+    expect(inst.post).toHaveBeenCalledWith(
       "/api/auth/login",
       expect.any(Object),
     );
   });
 
-  it("authApi.profile calls GET /api/users/:id", () => {
-    authApi.profile("user-1");
-    expect(axios.get).toHaveBeenCalledWith("/api/users/user-1");
+  it("profile → GET /api/users/:id", () => {
+    authApi.profile("u1");
+    expect(inst.get).toHaveBeenCalledWith("/api/users/u1");
   });
 });
 
-describe("API Client — productsApi", () => {
-  it("productsApi.list calls GET /api/products", () => {
+// ── productsApi ───────────────────────────────────────────────────────────────
+describe("productsApi", () => {
+  it("list → GET /api/products", () => {
     productsApi.list();
-    expect(axios.get).toHaveBeenCalledWith("/api/products");
+    expect(inst.get).toHaveBeenCalledWith("/api/products");
   });
 
-  it("productsApi.get calls GET /api/products/:id", () => {
-    productsApi.get("prod-1");
-    expect(axios.get).toHaveBeenCalledWith("/api/products/prod-1");
+  it("get → GET /api/products/:id", () => {
+    productsApi.get("p1");
+    expect(inst.get).toHaveBeenCalledWith("/api/products/p1");
   });
 
-  it("productsApi.create calls POST /api/products", () => {
-    productsApi.create({ name: "Widget", price: 100 });
-    expect(axios.post).toHaveBeenCalledWith(
-      "/api/products",
+  it("create → POST /api/products", () => {
+    productsApi.create({ name: "W", price: 100 });
+    expect(inst.post).toHaveBeenCalledWith("/api/products", expect.any(Object));
+  });
+
+  it("update → PUT /api/products/:id", () => {
+    productsApi.update("p1", { price: 200 });
+    expect(inst.put).toHaveBeenCalledWith(
+      "/api/products/p1",
       expect.any(Object),
     );
   });
 
-  it("productsApi.update calls PUT /api/products/:id", () => {
-    productsApi.update("prod-1", { price: 200 });
-    expect(axios.put).toHaveBeenCalledWith(
-      "/api/products/prod-1",
-      expect.any(Object),
-    );
-  });
-
-  it("productsApi.remove calls DELETE /api/products/:id", () => {
-    productsApi.remove("prod-1");
-    expect(axios.delete).toHaveBeenCalledWith("/api/products/prod-1");
+  it("remove → DELETE /api/products/:id", () => {
+    productsApi.remove("p1");
+    expect(inst.delete).toHaveBeenCalledWith("/api/products/p1");
   });
 });
 
-describe("API Client — ordersApi", () => {
-  it("ordersApi.list calls GET /api/orders", () => {
+// ── ordersApi ─────────────────────────────────────────────────────────────────
+describe("ordersApi", () => {
+  it("list → GET /api/orders", () => {
     ordersApi.list();
-    expect(axios.get).toHaveBeenCalledWith("/api/orders");
+    expect(inst.get).toHaveBeenCalledWith("/api/orders");
   });
 
-  it("ordersApi.create calls POST /api/orders", () => {
+  it("create → POST /api/orders", () => {
     ordersApi.create({ productId: "p1", quantity: 2 });
-    expect(axios.post).toHaveBeenCalledWith("/api/orders", expect.any(Object));
+    expect(inst.post).toHaveBeenCalledWith("/api/orders", expect.any(Object));
   });
 
-  it("ordersApi.cancel calls PATCH /api/orders/:id with cancelled status", () => {
-    ordersApi.cancel("order-1");
-    expect(axios.patch).toHaveBeenCalledWith("/api/orders/order-1", {
+  it("cancel → PATCH /api/orders/:id", () => {
+    ordersApi.cancel("o1");
+    expect(inst.patch).toHaveBeenCalledWith("/api/orders/o1", {
       status: "cancelled",
     });
   });
 
-  it("ordersApi.remove calls DELETE /api/orders/:id", () => {
-    ordersApi.remove("order-1");
-    expect(axios.delete).toHaveBeenCalledWith("/api/orders/order-1");
+  it("remove → DELETE /api/orders/:id", () => {
+    ordersApi.remove("o1");
+    expect(inst.delete).toHaveBeenCalledWith("/api/orders/o1");
   });
 });
 
-describe("API Client — paymentsApi", () => {
-  it("paymentsApi.list calls GET /api/payments/payments", () => {
+// ── paymentsApi ───────────────────────────────────────────────────────────────
+describe("paymentsApi", () => {
+  it("list → GET /api/payments/payments", () => {
     paymentsApi.list();
-    expect(axios.get).toHaveBeenCalledWith("/api/payments/payments");
+    expect(inst.get).toHaveBeenCalledWith("/api/payments/payments");
   });
 
-  it("paymentsApi.methods calls GET /api/payments/payments/methods", () => {
+  it("methods → GET /api/payments/payments/methods", () => {
     paymentsApi.methods();
-    expect(axios.get).toHaveBeenCalledWith("/api/payments/payments/methods");
+    expect(inst.get).toHaveBeenCalledWith("/api/payments/payments/methods");
   });
 
-  it("paymentsApi.getByOrder calls GET /api/payments/payments/order/:id", () => {
-    paymentsApi.getByOrder("order-1");
-    expect(axios.get).toHaveBeenCalledWith(
-      "/api/payments/payments/order/order-1",
-    );
+  it("getByOrder → GET /api/payments/payments/order/:id", () => {
+    paymentsApi.getByOrder("o1");
+    expect(inst.get).toHaveBeenCalledWith("/api/payments/payments/order/o1");
   });
 });
 
-describe("API Client — notificationsApi", () => {
-  it("notificationsApi.list calls GET /api/notifications/notifications", () => {
+// ── notificationsApi ──────────────────────────────────────────────────────────
+describe("notificationsApi", () => {
+  it("list → GET /api/notifications/notifications", () => {
     notificationsApi.list();
-    expect(axios.get).toHaveBeenCalledWith("/api/notifications/notifications");
+    expect(inst.get).toHaveBeenCalledWith("/api/notifications/notifications");
   });
 
-  it("notificationsApi.byEmail calls correct endpoint", () => {
-    notificationsApi.byEmail("user@example.com");
-    expect(axios.get).toHaveBeenCalledWith(
-      "/api/notifications/notifications/email/user@example.com",
+  it("byEmail → correct URL", () => {
+    notificationsApi.byEmail("u@b.com");
+    expect(inst.get).toHaveBeenCalledWith(
+      "/api/notifications/notifications/email/u@b.com",
     );
   });
 });
 
-describe("API Client — checkHealth", () => {
-  it("returns service statuses from /health/all", async () => {
+// ── checkHealth ───────────────────────────────────────────────────────────────
+describe("checkHealth", () => {
+  it("returns service statuses on success", async () => {
     axios.get.mockResolvedValueOnce({
       data: {
         status: "ok",
         services: { "user-service": "up", "product-service": "up" },
       },
     });
-
     const result = await checkHealth();
     expect(result["api-gateway"]).toBe("up");
     expect(result["user-service"]).toBe("up");
   });
 
-  it("returns all services as down when gateway is unreachable", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Network Error"));
-
+  it("returns all services down when gateway unreachable", async () => {
+    axios.get.mockRejectedValueOnce(new Error("ECONNREFUSED"));
     const result = await checkHealth();
     expect(result["api-gateway"]).toBe("down");
     expect(result["user-service"]).toBe("down");

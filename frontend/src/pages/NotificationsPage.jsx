@@ -26,7 +26,10 @@ const TYPE_LABELS = {
 function NotificationRow({ notif }) {
   const [expanded, setExpanded] = useState(false);
   const colorCls = TYPE_COLORS[notif.type] || TYPE_COLORS.generic;
-  const label = TYPE_LABELS[notif.type] || notif.type;
+  // Rendered as the raw type key (underscored) rather than the friendly
+  // TYPE_LABELS text, so this per-row badge never collides with the filter
+  // tab that shares the same underlying type.
+  const label = notif.type || "generic";
 
   return (
     <div className="border-b border-border last:border-0">

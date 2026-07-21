@@ -30,7 +30,7 @@ const mockNotifications = [
     id: "n2",
     email: "u@b.com",
     type: "order_cancelled",
-    subject: "Order Cancelled",
+    subject: "Your Order Has Been Cancelled",
     body: "Your order was cancelled.",
     status: "sent",
     createdAt: new Date().toISOString(),
@@ -77,7 +77,7 @@ describe("NotificationsPage — Display", () => {
     await waitFor(() =>
       expect(screen.getByText("Order Confirmation")).toBeTruthy(),
     );
-    expect(screen.getByText("Order Cancelled")).toBeTruthy();
+    expect(screen.getByText("Your Order Has Been Cancelled")).toBeTruthy();
   });
 
   it("shows notification count in header", async () => {
@@ -130,7 +130,7 @@ describe("NotificationsPage — Filter tabs", () => {
     // Click "Order Cancelled" filter
     await userEvent.click(screen.getByText(/Order Cancelled/i));
     expect(screen.queryByText("Order Confirmation")).toBeNull();
-    expect(screen.getByText("Order Cancelled")).toBeTruthy();
+    expect(screen.getByText("Your Order Has Been Cancelled")).toBeTruthy();
   });
 });
 

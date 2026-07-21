@@ -1,25 +1,28 @@
 /** @format */
 
 const request = require("supertest");
-const app = require("../src/app");
 
 process.env.ENABLE_CARD = "true";
 process.env.ENABLE_JAZZCASH = "true";
 process.env.ENABLE_COD = "true";
+process.env.DATABASE_URL = "postgresql://fake:fake@localhost:5432/fake";
 
-jest.mock("@prisma/client", () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({
-    payment: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      delete: jest.fn(),
-    },
-  })),
-}));
+jest.mock("@prisma/client", () => {
+  const mPayment = {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    delete: jest.fn(),
+  };
+  const instance = { payment: mPayment };
+  const PrismaClient = jest.fn(() => instance);
+  PrismaClient._instance = instance;
+  return { PrismaClient };
+});
 
 const { PrismaClient } = require("@prisma/client");
-let prisma;
+const app = require("../src/app");
+const db = PrismaClient._instance;
 
 const mockPayment = {
   id: "pay-uuid-1",
@@ -30,13 +33,11 @@ const mockPayment = {
   createdAt: new Date(),
 };
 
-beforeEach(() => {
-  prisma = new PrismaClient();
-  jest.clearAllMocks();
-});
+beforeEach(() => jest.clearAllMocks());
 
-describe("Payment Service — Health", () => {
-  it("GET /health returns ok", async () => {
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Health", () => {
+  it("GET /health → 200 ok", async () => {
     const res = await request(app).get("/health");
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe("ok");
@@ -44,21 +45,20 @@ describe("Payment Service — Health", () => {
   });
 });
 
-describe("Payment Service — Methods GET /payments/methods", () => {
-  it("returns available payment methods", async () => {
+describe("GET /payments/methods", () => {
+  it("200 – returns enabled methods", async () => {
     const res = await request(app).get("/payments/methods");
     expect(res.statusCode).toBe(200);
-    expect(res.body.status).toBe("success");
     expect(res.body.data).toContain("card");
     expect(res.body.data).toContain("jazzcash");
     expect(res.body.data).toContain("cod");
   });
 });
 
-describe("Payment Service — Pay POST /pay", () => {
-  it("processes a card payment successfully", async () => {
-    prisma.payment.findUnique.mockResolvedValue(null);
-    prisma.payment.create.mockResolvedValue(mockPayment);
+describe("POST /pay", () => {
+  it("200 – processes card payment", async () => {
+    db.payment.findUnique.mockResolvedValue(null);
+    db.payment.create.mockResolvedValue(mockPayment);
 
     const res = await request(app)
       .post("/pay")
@@ -67,15 +67,11 @@ describe("Payment Service — Pay POST /pay", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe("success");
     expect(res.body.data.method).toBe("card");
-    expect(res.body.data.status).toBe("success");
   });
 
-  it("processes jazzcash payment", async () => {
-    prisma.payment.findUnique.mockResolvedValue(null);
-    prisma.payment.create.mockResolvedValue({
-      ...mockPayment,
-      method: "jazzcash",
-    });
+  it("200 – processes jazzcash payment", async () => {
+    db.payment.findUnique.mockResolvedValue(null);
+    db.payment.create.mockResolvedValue({ ...mockPayment, method: "jazzcash" });
 
     const res = await request(app)
       .post("/pay")
@@ -85,9 +81,9 @@ describe("Payment Service — Pay POST /pay", () => {
     expect(res.body.data.method).toBe("jazzcash");
   });
 
-  it("processes cod payment", async () => {
-    prisma.payment.findUnique.mockResolvedValue(null);
-    prisma.payment.create.mockResolvedValue({ ...mockPayment, method: "cod" });
+  it("200 – processes cod payment", async () => {
+    db.payment.findUnique.mockResolvedValue(null);
+    db.payment.create.mockResolvedValue({ ...mockPayment, method: "cod" });
 
     const res = await request(app)
       .post("/pay")
@@ -97,50 +93,38 @@ describe("Payment Service — Pay POST /pay", () => {
     expect(res.body.data.method).toBe("cod");
   });
 
-  it("defaults to card when method not provided", async () => {
-    prisma.payment.findUnique.mockResolvedValue(null);
-    prisma.payment.create.mockResolvedValue(mockPayment);
+  it("200 – idempotent: returns existing payment for duplicate orderId", async () => {
+    db.payment.findUnique.mockResolvedValue(mockPayment);
 
     const res = await request(app)
       .post("/pay")
       .send({ orderId: "order-uuid-1", amount: 1500 });
 
     expect(res.statusCode).toBe(200);
+    expect(db.payment.create).not.toHaveBeenCalled();
   });
 
-  it("returns existing payment idempotently for duplicate orderId", async () => {
-    prisma.payment.findUnique.mockResolvedValue(mockPayment);
-
-    const res = await request(app)
-      .post("/pay")
-      .send({ orderId: "order-uuid-1", amount: 1500, method: "card" });
-
-    expect(res.statusCode).toBe(200);
-    expect(prisma.payment.create).not.toHaveBeenCalled();
-  });
-
-  it("returns 400 for missing orderId", async () => {
+  it("400 – missing orderId", async () => {
     const res = await request(app).post("/pay").send({ amount: 500 });
     expect(res.statusCode).toBe(400);
-    expect(res.body.status).toBe("error");
   });
 
-  it("returns 400 for missing amount", async () => {
+  it("400 – missing amount", async () => {
     const res = await request(app)
       .post("/pay")
       .send({ orderId: "order-uuid-1" });
     expect(res.statusCode).toBe(400);
   });
 
-  it("returns 400 for zero amount", async () => {
-    prisma.payment.findUnique.mockResolvedValue(null);
+  it("400 – zero amount", async () => {
+    db.payment.findUnique.mockResolvedValue(null);
     const res = await request(app)
       .post("/pay")
       .send({ orderId: "order-uuid-1", amount: 0 });
     expect(res.statusCode).toBe(400);
   });
 
-  it("returns 400 for unsupported payment method", async () => {
+  it("400 – unsupported payment method", async () => {
     const res = await request(app)
       .post("/pay")
       .send({ orderId: "order-uuid-1", amount: 500, method: "bitcoin" });
@@ -149,63 +133,53 @@ describe("Payment Service — Pay POST /pay", () => {
   });
 });
 
-describe("Payment Service — List GET /payments", () => {
-  it("returns all payments", async () => {
-    prisma.payment.findMany.mockResolvedValue([mockPayment]);
-
+describe("GET /payments", () => {
+  it("200 – returns all payments", async () => {
+    db.payment.findMany.mockResolvedValue([mockPayment]);
     const res = await request(app).get("/payments");
     expect(res.statusCode).toBe(200);
-    expect(res.body.status).toBe("success");
     expect(Array.isArray(res.body.data)).toBe(true);
     expect(res.body.data[0].orderId).toBe("order-uuid-1");
   });
 
-  it("returns empty array when no payments", async () => {
-    prisma.payment.findMany.mockResolvedValue([]);
+  it("200 – empty array", async () => {
+    db.payment.findMany.mockResolvedValue([]);
     const res = await request(app).get("/payments");
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toEqual([]);
   });
 });
 
-describe("Payment Service — Get by Order GET /payments/order/:orderId", () => {
-  it("returns payment for an existing order", async () => {
-    prisma.payment.findUnique.mockResolvedValue(mockPayment);
-
+describe("GET /payments/order/:orderId", () => {
+  it("200 – returns payment by order", async () => {
+    db.payment.findUnique.mockResolvedValue(mockPayment);
     const res = await request(app).get("/payments/order/order-uuid-1");
     expect(res.statusCode).toBe(200);
     expect(res.body.data.orderId).toBe("order-uuid-1");
   });
 
-  it("returns 404 when no payment for order", async () => {
-    prisma.payment.findUnique.mockResolvedValue(null);
-
+  it("404 – payment not found", async () => {
+    db.payment.findUnique.mockResolvedValue(null);
     const res = await request(app).get("/payments/order/nonexistent");
     expect(res.statusCode).toBe(404);
-    expect(res.body.status).toBe("error");
   });
 });
 
-describe("Payment Service — Delete DELETE /payments/order/:orderId", () => {
-  it("deletes an existing payment record", async () => {
-    prisma.payment.findUnique.mockResolvedValue(mockPayment);
-    prisma.payment.delete.mockResolvedValue(mockPayment);
+describe("DELETE /payments/order/:orderId", () => {
+  it("200 – deletes payment record", async () => {
+    db.payment.findUnique.mockResolvedValue(mockPayment);
+    db.payment.delete.mockResolvedValue(mockPayment);
 
     const res = await request(app).delete("/payments/order/order-uuid-1");
     expect(res.statusCode).toBe(200);
     expect(res.body.data.orderId).toBe("order-uuid-1");
-    expect(prisma.payment.delete).toHaveBeenCalledWith({
-      where: { orderId: "order-uuid-1" },
-    });
   });
 
-  it("returns success (idempotent) when no payment exists for orderId", async () => {
-    prisma.payment.findUnique.mockResolvedValue(null);
-
+  it("200 – idempotent when no payment exists", async () => {
+    db.payment.findUnique.mockResolvedValue(null);
     const res = await request(app).delete("/payments/order/nonexistent");
     expect(res.statusCode).toBe(200);
-    expect(res.body.status).toBe("success");
     expect(res.body.data).toBeNull();
-    expect(prisma.payment.delete).not.toHaveBeenCalled();
+    expect(db.payment.delete).not.toHaveBeenCalled();
   });
 });

@@ -7,10 +7,7 @@ import PaymentsPage from "../pages/PaymentsPage";
 import { AuthProvider } from "../context/AuthContext";
 
 vi.mock("../api/client", () => ({
-  paymentsApi: {
-    list: vi.fn(),
-    methods: vi.fn(),
-  },
+  paymentsApi: { list: vi.fn(), methods: vi.fn() },
 }));
 
 import { paymentsApi } from "../api/client";
@@ -34,7 +31,7 @@ const mockPayments = [
   },
 ];
 
-const renderPage = (loggedIn = true) => {
+const setup = (loggedIn = true) => {
   if (loggedIn) {
     localStorage.setItem("sf_token", "tok");
     localStorage.setItem(
@@ -59,68 +56,72 @@ beforeEach(() => {
 });
 
 describe("PaymentsPage — Unauthenticated", () => {
-  it("shows sign-in prompt when not authenticated", () => {
-    renderPage(false);
+  it("shows sign-in prompt", () => {
+    setup(false);
     expect(screen.getByText(/sign in to view payments/i)).toBeTruthy();
   });
 });
 
 describe("PaymentsPage — Display", () => {
-  it("renders payments table", async () => {
-    paymentsApi.list.mockResolvedValueOnce({ data: { data: mockPayments } });
-    paymentsApi.methods.mockResolvedValueOnce({
+  it("shows payment count in header", async () => {
+    paymentsApi.list.mockResolvedValue({ data: { data: mockPayments } });
+    paymentsApi.methods.mockResolvedValue({
       data: { data: ["card", "jazzcash", "cod"] },
     });
-    renderPage();
+    setup();
     await waitFor(() =>
       expect(screen.getByText("2 payments recorded")).toBeTruthy(),
     );
   });
 
-  it("shows enabled payment methods", async () => {
-    paymentsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    paymentsApi.methods.mockResolvedValueOnce({
+  it("shows enabled payment method badges", async () => {
+    paymentsApi.list.mockResolvedValue({ data: { data: [] } });
+    paymentsApi.methods.mockResolvedValue({
       data: { data: ["card", "jazzcash", "cod"] },
     });
-    renderPage();
-    await waitFor(() => expect(screen.getByText(/💳 Card/i)).toBeTruthy());
-    expect(screen.getByText(/📱 JazzCash/i)).toBeTruthy();
-    expect(screen.getByText(/💵 COD/i)).toBeTruthy();
+    setup();
+    await waitFor(() => {
+      expect(screen.getByText("💳 Card")).toBeTruthy();
+      expect(screen.getByText("📱 JazzCash")).toBeTruthy();
+      expect(screen.getByText("💵 COD")).toBeTruthy();
+    });
   });
 
   it("shows total collected amount", async () => {
-    paymentsApi.list.mockResolvedValueOnce({ data: { data: mockPayments } });
-    paymentsApi.methods.mockResolvedValueOnce({ data: { data: ["card"] } });
-    renderPage();
+    paymentsApi.list.mockResolvedValue({ data: { data: mockPayments } });
+    paymentsApi.methods.mockResolvedValue({ data: { data: ["card"] } });
+    setup();
     await waitFor(() => expect(screen.getByText("Rs 3,500")).toBeTruthy());
   });
 
   it("shows empty state when no payments", async () => {
-    paymentsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    paymentsApi.methods.mockResolvedValueOnce({ data: { data: ["card"] } });
-    renderPage();
+    paymentsApi.list.mockResolvedValue({ data: { data: [] } });
+    paymentsApi.methods.mockResolvedValue({ data: { data: ["card"] } });
+    setup();
     await waitFor(() =>
       expect(screen.getByText(/no payments yet/i)).toBeTruthy(),
     );
   });
 
-  it("displays payment method labels in table", async () => {
-    paymentsApi.list.mockResolvedValueOnce({ data: { data: mockPayments } });
-    paymentsApi.methods.mockResolvedValueOnce({
+  it("shows method labels in table rows", async () => {
+    paymentsApi.list.mockResolvedValue({ data: { data: mockPayments } });
+    paymentsApi.methods.mockResolvedValue({
       data: { data: ["card", "jazzcash"] },
     });
-    renderPage();
-    await waitFor(() => expect(screen.getByText("💳 Card")).toBeTruthy());
-    expect(screen.getByText("📱 JazzCash")).toBeTruthy();
+    setup();
+    await waitFor(() => {
+      // Table rows show the method label
+      expect(screen.getAllByText("💳 Card").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("📱 JazzCash").length).toBeGreaterThan(0);
+    });
   });
 
-  it("shows Success status badge for successful payments", async () => {
-    paymentsApi.list.mockResolvedValueOnce({ data: { data: mockPayments } });
-    paymentsApi.methods.mockResolvedValueOnce({ data: { data: ["card"] } });
-    renderPage();
+  it("shows Success badges for successful payments", async () => {
+    paymentsApi.list.mockResolvedValue({ data: { data: mockPayments } });
+    paymentsApi.methods.mockResolvedValue({ data: { data: ["card"] } });
+    setup();
     await waitFor(() => {
-      const badges = screen.getAllByText("Success");
-      expect(badges.length).toBe(2);
+      expect(screen.getAllByText("Success").length).toBe(2);
     });
   });
 });

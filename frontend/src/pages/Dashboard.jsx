@@ -49,9 +49,9 @@ function StatCard({
       </div>
       <div>
         <p className="text-xs text-muted mb-0.5">{label}</p>
-        <p className="text-2xl font-bold text-white font-mono">
+        <div className="text-2xl font-bold text-white font-mono">
           {value ?? <Spinner size="sm" />}
-        </p>
+        </div>
         {sub && <p className="text-xs text-muted mt-0.5">{sub}</p>}
       </div>
     </div>

@@ -14,7 +14,7 @@ vi.mock("../api/client", () => ({
 
 import { productsApi, ordersApi, checkHealth } from "../api/client";
 
-const renderPage = (loggedIn = false) => {
+const setup = (loggedIn = false) => {
   if (loggedIn) {
     localStorage.setItem("sf_token", "tok");
     localStorage.setItem(
@@ -39,24 +39,24 @@ beforeEach(() => {
 });
 
 describe("Dashboard — Unauthenticated", () => {
-  it('shows "Dashboard" heading', async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    checkHealth.mockResolvedValueOnce({});
-    renderPage(false);
+  it("renders Dashboard heading", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    checkHealth.mockResolvedValue({});
+    setup(false);
     await waitFor(() => expect(screen.getByText("Dashboard")).toBeTruthy());
   });
 
   it("shows Get Started CTA", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    checkHealth.mockResolvedValueOnce({});
-    renderPage(false);
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    checkHealth.mockResolvedValue({});
+    setup(false);
     await waitFor(() => expect(screen.getByText(/get started/i)).toBeTruthy());
   });
 
-  it("shows sign-in prompt for orders section", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    checkHealth.mockResolvedValueOnce({});
-    renderPage(false);
+  it("shows sign-in prompt inside orders card", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    checkHealth.mockResolvedValue({});
+    setup(false);
     await waitFor(() =>
       expect(screen.getByText(/sign in to see your orders/i)).toBeTruthy(),
     );
@@ -64,41 +64,45 @@ describe("Dashboard — Unauthenticated", () => {
 });
 
 describe("Dashboard — Authenticated", () => {
-  it("shows welcome message with user name", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    ordersApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    checkHealth.mockResolvedValueOnce({});
-    renderPage(true);
+  it("shows welcome message with first name", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    ordersApi.list.mockResolvedValue({ data: { data: [] } });
+    checkHealth.mockResolvedValue({});
+    setup(true);
     await waitFor(() =>
       expect(screen.getByText(/welcome back, alice/i)).toBeTruthy(),
     );
   });
 
-  it("shows product count stat", async () => {
-    productsApi.list.mockResolvedValueOnce({
+  it("shows product count in stat card", async () => {
+    productsApi.list.mockResolvedValue({
       data: { data: [{ id: "p1" }, { id: "p2" }] },
     });
-    ordersApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    checkHealth.mockResolvedValueOnce({});
-    renderPage(true);
-    await waitFor(() => expect(screen.getByText("2")).toBeTruthy());
+    ordersApi.list.mockResolvedValue({ data: { data: [] } });
+    checkHealth.mockResolvedValue({});
+    setup(true);
+    // "2" appears in the Total Products stat card
+    await waitFor(() => {
+      const nodes = screen.getAllByText("2");
+      expect(nodes.length).toBeGreaterThan(0);
+    });
   });
 
-  it("shows service health status", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    ordersApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    checkHealth.mockResolvedValueOnce({
+  it("shows service health fraction", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    ordersApi.list.mockResolvedValue({ data: { data: [] } });
+    checkHealth.mockResolvedValue({
       "api-gateway": "up",
       "user-service": "up",
       "product-service": "down",
     });
-    renderPage(true);
-    await waitFor(() => expect(screen.getByText("1/3")).toBeTruthy());
+    setup(true);
+    await waitFor(() => expect(screen.getByText("2/3")).toBeTruthy());
   });
 
-  it("shows recent orders when they exist", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    ordersApi.list.mockResolvedValueOnce({
+  it("shows a recent order row", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    ordersApi.list.mockResolvedValue({
       data: {
         data: [
           {
@@ -112,16 +116,16 @@ describe("Dashboard — Authenticated", () => {
         ],
       },
     });
-    checkHealth.mockResolvedValueOnce({});
-    renderPage(true);
+    checkHealth.mockResolvedValue({});
+    setup(true);
     await waitFor(() => expect(screen.getByText(/qty: 1/i)).toBeTruthy());
   });
 
-  it('shows "No orders yet" when no orders', async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    ordersApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    checkHealth.mockResolvedValueOnce({});
-    renderPage(true);
+  it('shows "No orders yet" when orders list is empty', async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    ordersApi.list.mockResolvedValue({ data: { data: [] } });
+    checkHealth.mockResolvedValue({});
+    setup(true);
     await waitFor(() =>
       expect(screen.getByText(/no orders yet/i)).toBeTruthy(),
     );

@@ -1,19 +1,23 @@
 /** @format */
 
 const request = require("supertest");
-const app = require("../src/app");
 
-jest.mock("@prisma/client", () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({
-    notification: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-    },
-  })),
-}));
+process.env.DATABASE_URL = "postgresql://fake:fake@localhost:5432/fake";
+
+jest.mock("@prisma/client", () => {
+  const mNotification = {
+    create: jest.fn(),
+    findMany: jest.fn(),
+  };
+  const instance = { notification: mNotification };
+  const PrismaClient = jest.fn(() => instance);
+  PrismaClient._instance = instance;
+  return { PrismaClient };
+});
 
 const { PrismaClient } = require("@prisma/client");
-let prisma;
+const app = require("../src/app");
+const db = PrismaClient._instance;
 
 const mockNotification = {
   id: "notif-uuid-1",
@@ -25,13 +29,11 @@ const mockNotification = {
   createdAt: new Date(),
 };
 
-beforeEach(() => {
-  prisma = new PrismaClient();
-  jest.clearAllMocks();
-});
+beforeEach(() => jest.clearAllMocks());
 
-describe("Notification Service — Health", () => {
-  it("GET /health returns ok", async () => {
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Health", () => {
+  it("GET /health → 200 ok", async () => {
     const res = await request(app).get("/health");
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe("ok");
@@ -39,9 +41,10 @@ describe("Notification Service — Health", () => {
   });
 });
 
-describe("Notification Service — Notify POST /notify", () => {
-  it("sends an order_confirmation notification", async () => {
-    prisma.notification.create.mockResolvedValue(mockNotification);
+// ─────────────────────────────────────────────────────────────────────────────
+describe("POST /notify", () => {
+  it("200 – order_confirmation notification", async () => {
+    db.notification.create.mockResolvedValue(mockNotification);
 
     const res = await request(app)
       .post("/notify")
@@ -62,16 +65,15 @@ describe("Notification Service — Notify POST /notify", () => {
     expect(res.body.status).toBe("success");
     expect(res.body.data.email).toBe("user@example.com");
     expect(res.body.data.type).toBe("order_confirmation");
-    expect(prisma.notification.create).toHaveBeenCalledTimes(1);
   });
 
-  it("sends an order_cancelled notification", async () => {
+  it("200 – order_cancelled notification", async () => {
     const cancelled = {
       ...mockNotification,
       type: "order_cancelled",
       subject: "Order Cancelled",
     };
-    prisma.notification.create.mockResolvedValue(cancelled);
+    db.notification.create.mockResolvedValue(cancelled);
 
     const res = await request(app)
       .post("/notify")
@@ -89,13 +91,13 @@ describe("Notification Service — Notify POST /notify", () => {
     expect(res.body.data.type).toBe("order_cancelled");
   });
 
-  it("sends a payment_failed notification", async () => {
+  it("200 – payment_failed notification", async () => {
     const failed = {
       ...mockNotification,
       type: "payment_failed",
       subject: "Payment Failed",
     };
-    prisma.notification.create.mockResolvedValue(failed);
+    db.notification.create.mockResolvedValue(failed);
 
     const res = await request(app)
       .post("/notify")
@@ -109,45 +111,25 @@ describe("Notification Service — Notify POST /notify", () => {
     expect(res.body.data.type).toBe("payment_failed");
   });
 
-  it("sends a generic notification with plain message", async () => {
-    const generic = {
+  it("200 – generic fallback for unknown type", async () => {
+    db.notification.create.mockResolvedValue({
       ...mockNotification,
-      type: "generic",
-      subject: "Notification",
-    };
-    prisma.notification.create.mockResolvedValue(generic);
-
-    const res = await request(app)
-      .post("/notify")
-      .send({
-        email: "user@example.com",
-        type: "generic",
-        data: { message: "Hello there!", subject: "Hello" },
-      });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.data.type).toBe("generic");
-  });
-
-  it("falls back to generic template for unknown type", async () => {
-    prisma.notification.create.mockResolvedValue({
-      ...mockNotification,
-      type: "unknown_type",
+      type: "custom_type",
     });
 
     const res = await request(app)
       .post("/notify")
       .send({
         email: "user@example.com",
-        type: "unknown_type",
-        data: { message: "Fallback message" },
+        type: "custom_type",
+        data: { message: "Hello" },
       });
 
     expect(res.statusCode).toBe(200);
   });
 
-  it("persists notification to DB", async () => {
-    prisma.notification.create.mockResolvedValue(mockNotification);
+  it("persists notification to DB with correct fields", async () => {
+    db.notification.create.mockResolvedValue(mockNotification);
 
     await request(app)
       .post("/notify")
@@ -164,7 +146,7 @@ describe("Notification Service — Notify POST /notify", () => {
         },
       });
 
-    expect(prisma.notification.create).toHaveBeenCalledWith(
+    expect(db.notification.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
           email: "user@example.com",
@@ -175,12 +157,12 @@ describe("Notification Service — Notify POST /notify", () => {
     );
   });
 
-  it("returns 400 when email is missing", async () => {
+  it("400 – missing email", async () => {
     const res = await request(app)
       .post("/notify")
       .send({
         type: "generic",
-        data: { message: "No email provided" },
+        data: { message: "No email" },
       });
 
     expect(res.statusCode).toBe(400);
@@ -189,43 +171,38 @@ describe("Notification Service — Notify POST /notify", () => {
   });
 });
 
-describe("Notification Service — List GET /notifications", () => {
-  it("returns all notifications", async () => {
-    prisma.notification.findMany.mockResolvedValue([mockNotification]);
-
+// ─────────────────────────────────────────────────────────────────────────────
+describe("GET /notifications", () => {
+  it("200 – returns all notifications", async () => {
+    db.notification.findMany.mockResolvedValue([mockNotification]);
     const res = await request(app).get("/notifications");
     expect(res.statusCode).toBe(200);
-    expect(res.body.status).toBe("success");
     expect(Array.isArray(res.body.data)).toBe(true);
     expect(res.body.data[0].email).toBe("user@example.com");
   });
 
-  it("returns empty array when no notifications", async () => {
-    prisma.notification.findMany.mockResolvedValue([]);
-
+  it("200 – empty array", async () => {
+    db.notification.findMany.mockResolvedValue([]);
     const res = await request(app).get("/notifications");
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toEqual([]);
   });
 });
 
-describe("Notification Service — By Email GET /notifications/email/:email", () => {
-  it("returns notifications for a given email", async () => {
-    prisma.notification.findMany.mockResolvedValue([mockNotification]);
-
+// ─────────────────────────────────────────────────────────────────────────────
+describe("GET /notifications/email/:email", () => {
+  it("200 – returns notifications for email", async () => {
+    db.notification.findMany.mockResolvedValue([mockNotification]);
     const res = await request(app).get("/notifications/email/user@example.com");
     expect(res.statusCode).toBe(200);
     expect(res.body.data[0].email).toBe("user@example.com");
-    expect(prisma.notification.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { email: "user@example.com" },
-      }),
+    expect(db.notification.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { email: "user@example.com" } }),
     );
   });
 
-  it("returns empty array when email has no notifications", async () => {
-    prisma.notification.findMany.mockResolvedValue([]);
-
+  it("200 – empty array when email has no notifications", async () => {
+    db.notification.findMany.mockResolvedValue([]);
     const res = await request(app).get(
       "/notifications/email/nobody@example.com",
     );

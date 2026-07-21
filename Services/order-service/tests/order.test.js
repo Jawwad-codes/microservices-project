@@ -2,29 +2,33 @@
 
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
-const app = require("../src/app");
 
 process.env.JWT_SECRET = "test_jwt_secret";
+process.env.DATABASE_URL = "postgresql://fake:fake@localhost:5432/fake";
 process.env.PRODUCT_SERVICE_URL = "http://localhost:4002";
 process.env.PAYMENT_SERVICE_URL = "http://localhost:4004";
 process.env.NOTIFICATION_SERVICE_URL = "http://localhost:4005";
 
-jest.mock("@prisma/client", () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({
-    order: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-  })),
-}));
+jest.mock("@prisma/client", () => {
+  const mOrder = {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  };
+  const instance = { order: mOrder };
+  const PrismaClient = jest.fn(() => instance);
+  PrismaClient._instance = instance;
+  return { PrismaClient };
+});
 
 jest.mock("axios");
-const axios = require("axios");
+
 const { PrismaClient } = require("@prisma/client");
-let prisma;
+const axios = require("axios");
+const app = require("../src/app");
+const db = PrismaClient._instance;
 
 const validToken = jwt.sign(
   { id: "user-uuid-1", email: "user@example.com", name: "Test User" },
@@ -42,58 +46,50 @@ const mockOrder = {
   createdAt: new Date(),
 };
 
-beforeEach(() => {
-  prisma = new PrismaClient();
-  jest.clearAllMocks();
-});
+beforeEach(() => jest.clearAllMocks());
 
-describe("Order Service — Health", () => {
-  it("GET /health returns ok", async () => {
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Health", () => {
+  it("GET /health → 200 ok", async () => {
     const res = await request(app).get("/health");
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe("ok");
   });
 });
 
-describe("Order Service — Auth guard", () => {
-  it("POST /orders rejects without token", async () => {
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Auth guard", () => {
+  it("POST /orders → 401 without token", async () => {
     const res = await request(app)
       .post("/orders")
       .send({ productId: "p1", quantity: 1 });
     expect(res.statusCode).toBe(401);
   });
-
-  it("GET /orders rejects without token", async () => {
-    const res = await request(app).get("/orders");
-    expect(res.statusCode).toBe(401);
+  it("GET /orders → 401 without token", async () => {
+    expect((await request(app).get("/orders")).statusCode).toBe(401);
   });
-
-  it("GET /orders/:id rejects without token", async () => {
-    const res = await request(app).get("/orders/some-id");
-    expect(res.statusCode).toBe(401);
+  it("GET /orders/:id → 401 without token", async () => {
+    expect((await request(app).get("/orders/x")).statusCode).toBe(401);
   });
-
-  it("PATCH /orders/:id rejects without token", async () => {
-    const res = await request(app)
-      .patch("/orders/some-id")
-      .send({ status: "cancelled" });
-    expect(res.statusCode).toBe(401);
+  it("PATCH /orders/:id → 401 without token", async () => {
+    expect(
+      (await request(app).patch("/orders/x").send({ status: "cancelled" }))
+        .statusCode,
+    ).toBe(401);
   });
-
-  it("DELETE /orders/:id rejects without token", async () => {
-    const res = await request(app).delete("/orders/some-id");
-    expect(res.statusCode).toBe(401);
+  it("DELETE /orders/:id → 401 without token", async () => {
+    expect((await request(app).delete("/orders/x")).statusCode).toBe(401);
   });
 });
 
-describe("Order Service — Create POST /orders", () => {
-  it("creates an order successfully", async () => {
-    axios.get.mockResolvedValueOnce({ data: { data: mockProduct } });
-    prisma.order.create.mockResolvedValue(mockOrder);
-    axios.post.mockResolvedValueOnce({ data: { status: "success", data: {} } });
-    prisma.order.update.mockResolvedValue({ ...mockOrder, status: "paid" });
-    axios.patch.mockResolvedValueOnce({ data: { data: {} } });
-    axios.post.mockResolvedValueOnce({ data: { status: "success" } }); // notify
+// ─────────────────────────────────────────────────────────────────────────────
+describe("POST /orders", () => {
+  it("201 – creates order and pays", async () => {
+    axios.get.mockResolvedValue({ data: { data: mockProduct } });
+    db.order.create.mockResolvedValue(mockOrder);
+    db.order.update.mockResolvedValue({ ...mockOrder, status: "paid" });
+    axios.post.mockResolvedValue({ data: { status: "success", data: {} } });
+    axios.patch.mockResolvedValue({ data: {} });
 
     const res = await request(app)
       .post("/orders")
@@ -104,7 +100,7 @@ describe("Order Service — Create POST /orders", () => {
     expect(res.body.status).toBe("success");
   });
 
-  it("returns 400 for missing productId", async () => {
+  it("400 – missing productId", async () => {
     const res = await request(app)
       .post("/orders")
       .set("Authorization", `Bearer ${validToken}`)
@@ -112,18 +108,18 @@ describe("Order Service — Create POST /orders", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("returns 400 for quantity = 0", async () => {
+  it("400 – quantity must be positive", async () => {
     const res = await request(app)
       .post("/orders")
       .set("Authorization", `Bearer ${validToken}`)
-      .send({ productId: "prod-1", quantity: 0 });
+      .send({ productId: "p1", quantity: 0 });
     expect(res.statusCode).toBe(400);
   });
 
-  it("returns 404 when product service is unavailable", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Connection refused"));
-    prisma.order.create.mockResolvedValue(mockOrder);
-    prisma.order.update.mockResolvedValue({
+  it("404 – product service unavailable", async () => {
+    axios.get.mockRejectedValueOnce(new Error("ECONNREFUSED"));
+    db.order.create.mockResolvedValue(mockOrder);
+    db.order.update.mockResolvedValue({
       ...mockOrder,
       status: "payment_failed",
     });
@@ -131,17 +127,16 @@ describe("Order Service — Create POST /orders", () => {
     const res = await request(app)
       .post("/orders")
       .set("Authorization", `Bearer ${validToken}`)
-      .send({ productId: "prod-1", quantity: 2 });
-
+      .send({ productId: "p1", quantity: 1 });
     expect(res.statusCode).toBe(404);
   });
 
-  it("returns 400 when stock is insufficient", async () => {
+  it("400 – insufficient stock", async () => {
     axios.get.mockResolvedValueOnce({
       data: { data: { ...mockProduct, stock: 1 } },
     });
-    prisma.order.create.mockResolvedValue(mockOrder);
-    prisma.order.update.mockResolvedValue({
+    db.order.create.mockResolvedValue(mockOrder);
+    db.order.update.mockResolvedValue({
       ...mockOrder,
       status: "payment_failed",
     });
@@ -149,81 +144,69 @@ describe("Order Service — Create POST /orders", () => {
     const res = await request(app)
       .post("/orders")
       .set("Authorization", `Bearer ${validToken}`)
-      .send({ productId: "prod-1", quantity: 5 });
-
+      .send({ productId: "p1", quantity: 5 });
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toMatch(/insufficient stock/i);
   });
 });
 
-describe("Order Service — List GET /orders", () => {
-  it("returns order history for authenticated user", async () => {
-    prisma.order.findMany.mockResolvedValue([mockOrder]);
-
+// ─────────────────────────────────────────────────────────────────────────────
+describe("GET /orders", () => {
+  it("200 – returns order history", async () => {
+    db.order.findMany.mockResolvedValue([mockOrder]);
     const res = await request(app)
       .get("/orders")
       .set("Authorization", `Bearer ${validToken}`);
-
     expect(res.statusCode).toBe(200);
-    expect(res.body.status).toBe("success");
     expect(Array.isArray(res.body.data)).toBe(true);
   });
 
-  it("returns empty array when user has no orders", async () => {
-    prisma.order.findMany.mockResolvedValue([]);
-
+  it("200 – empty array when no orders", async () => {
+    db.order.findMany.mockResolvedValue([]);
     const res = await request(app)
       .get("/orders")
       .set("Authorization", `Bearer ${validToken}`);
-
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toEqual([]);
   });
 });
 
-describe("Order Service — Get One GET /orders/:id", () => {
-  it("returns a single order owned by the user", async () => {
-    prisma.order.findUnique.mockResolvedValue(mockOrder);
-
+// ─────────────────────────────────────────────────────────────────────────────
+describe("GET /orders/:id", () => {
+  it("200 – returns own order", async () => {
+    db.order.findUnique.mockResolvedValue(mockOrder);
     const res = await request(app)
       .get("/orders/order-uuid-1")
       .set("Authorization", `Bearer ${validToken}`);
-
     expect(res.statusCode).toBe(200);
     expect(res.body.data.id).toBe("order-uuid-1");
   });
 
-  it("returns 404 for non-existent order", async () => {
-    prisma.order.findUnique.mockResolvedValue(null);
-
+  it("404 – order not found", async () => {
+    db.order.findUnique.mockResolvedValue(null);
     const res = await request(app)
       .get("/orders/nonexistent")
       .set("Authorization", `Bearer ${validToken}`);
-
     expect(res.statusCode).toBe(404);
   });
 
-  it("returns 403 when order belongs to another user", async () => {
-    prisma.order.findUnique.mockResolvedValue({
+  it("403 – order belongs to another user", async () => {
+    db.order.findUnique.mockResolvedValue({
       ...mockOrder,
-      userId: "other-user-id",
+      userId: "other-user",
     });
-
     const res = await request(app)
       .get("/orders/order-uuid-1")
       .set("Authorization", `Bearer ${validToken}`);
-
     expect(res.statusCode).toBe(403);
   });
 });
 
-describe("Order Service — Cancel PATCH /orders/:id", () => {
-  it("cancels a pending order", async () => {
-    prisma.order.findUnique.mockResolvedValue(mockOrder); // pending
-    prisma.order.update.mockResolvedValue({
-      ...mockOrder,
-      status: "cancelled",
-    });
+// ─────────────────────────────────────────────────────────────────────────────
+describe("PATCH /orders/:id (cancel)", () => {
+  it("200 – cancels pending order", async () => {
+    db.order.findUnique.mockResolvedValue(mockOrder); // status: pending
+    db.order.update.mockResolvedValue({ ...mockOrder, status: "cancelled" });
     axios.post.mockResolvedValueOnce({ data: {} }); // notify
 
     const res = await request(app)
@@ -235,8 +218,8 @@ describe("Order Service — Cancel PATCH /orders/:id", () => {
     expect(res.body.data.status).toBe("cancelled");
   });
 
-  it("returns 400 when trying to cancel an already-cancelled order", async () => {
-    prisma.order.findUnique.mockResolvedValue({
+  it("400 – cannot cancel already cancelled order", async () => {
+    db.order.findUnique.mockResolvedValue({
       ...mockOrder,
       status: "cancelled",
     });
@@ -250,24 +233,24 @@ describe("Order Service — Cancel PATCH /orders/:id", () => {
     expect(res.body.message).toMatch(/cannot be cancelled/i);
   });
 
-  it("returns 400 for invalid status value", async () => {
+  it("400 – invalid status value", async () => {
     const res = await request(app)
       .patch("/orders/order-uuid-1")
       .set("Authorization", `Bearer ${validToken}`)
-      .send({ status: "shipped" }); // not an allowed value
-
+      .send({ status: "shipped" });
     expect(res.statusCode).toBe(400);
   });
 });
 
-describe("Order Service — Delete DELETE /orders/:id", () => {
-  it("deletes a cancelled order and cleans up payment", async () => {
-    prisma.order.findUnique.mockResolvedValue({
+// ─────────────────────────────────────────────────────────────────────────────
+describe("DELETE /orders/:id", () => {
+  it("200 – deletes cancelled order and cleans up payment", async () => {
+    db.order.findUnique.mockResolvedValue({
       ...mockOrder,
       status: "cancelled",
     });
     axios.delete.mockResolvedValueOnce({ data: { status: "success" } });
-    prisma.order.delete.mockResolvedValue(mockOrder);
+    db.order.delete.mockResolvedValue(mockOrder);
 
     const res = await request(app)
       .delete("/orders/order-uuid-1")
@@ -280,8 +263,8 @@ describe("Order Service — Delete DELETE /orders/:id", () => {
     );
   });
 
-  it("blocks deletion of a paid order", async () => {
-    prisma.order.findUnique.mockResolvedValue({ ...mockOrder, status: "paid" });
+  it("400 – blocks deletion of paid order", async () => {
+    db.order.findUnique.mockResolvedValue({ ...mockOrder, status: "paid" });
 
     const res = await request(app)
       .delete("/orders/order-uuid-1")
@@ -291,13 +274,11 @@ describe("Order Service — Delete DELETE /orders/:id", () => {
     expect(res.body.message).toMatch(/cancel/i);
   });
 
-  it("returns 404 for non-existent order", async () => {
-    prisma.order.findUnique.mockResolvedValue(null);
-
+  it("404 – order not found", async () => {
+    db.order.findUnique.mockResolvedValue(null);
     const res = await request(app)
       .delete("/orders/nonexistent")
       .set("Authorization", `Bearer ${validToken}`);
-
     expect(res.statusCode).toBe(404);
   });
 });

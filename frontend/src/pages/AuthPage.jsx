@@ -138,6 +138,8 @@ export default function AuthPage() {
           {["login", "register"].map((t) => (
             <button
               key={t}
+              type="button"
+              aria-label={`Switch to ${t === "login" ? "Sign In" : "Register"} tab`}
               onClick={() => {
                 setTab(t);
                 setLoginErr("");

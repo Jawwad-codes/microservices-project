@@ -20,3 +20,4 @@ coverage
 **/__tests__
 **/__mocks__
 **/*.md
+/test

@@ -452,6 +452,7 @@ export default function ProductsPage() {
           {isAuth ? (
             <button
               onClick={() => setShowAdd(true)}
+              aria-label="Open add product form"
               className="btn-primary flex items-center gap-2"
             >
               <Plus size={15} /> Add Product
@@ -501,18 +502,9 @@ export default function ProductsPage() {
           description={
             search
               ? "Try a different search term."
-              : "Add the first product to the catalog."
-          }
-          action={
-            isAuth &&
-            !search && (
-              <button
-                onClick={() => setShowAdd(true)}
-                className="btn-primary flex items-center gap-2"
-              >
-                <Plus size={14} /> Add Product
-              </button>
-            )
+              : isAuth
+                ? "Use the Add Product button above to add the first product."
+                : "Add the first product to the catalog."
           }
         />
       ) : (

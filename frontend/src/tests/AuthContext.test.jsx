@@ -1,11 +1,10 @@
 /** @format */
 
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 
-// Helper component that exposes context values via the DOM
 function AuthConsumer() {
   const { user, token, isAuth, login, logout } = useAuth();
   return (
@@ -14,6 +13,7 @@ function AuthConsumer() {
       <span data-testid="user-email">{user?.email ?? "none"}</span>
       <span data-testid="token">{token ?? "none"}</span>
       <button
+        data-testid="login-btn"
         onClick={() =>
           login("test-token", {
             id: "1",
@@ -21,39 +21,35 @@ function AuthConsumer() {
             email: "alice@test.com",
           })
         }
-        data-testid="login-btn"
       >
         Login
       </button>
-      <button onClick={logout} data-testid="logout-btn">
+      <button data-testid="logout-btn" onClick={logout}>
         Logout
       </button>
     </div>
   );
 }
 
-function renderWithAuth() {
-  return render(
+const setup = () =>
+  render(
     <AuthProvider>
       <AuthConsumer />
     </AuthProvider>,
   );
-}
 
-beforeEach(() => {
-  localStorage.clear();
-});
+beforeEach(() => localStorage.clear());
 
 describe("AuthContext", () => {
-  it("starts unauthenticated when localStorage is empty", () => {
-    renderWithAuth();
+  it("starts unauthenticated", () => {
+    setup();
     expect(screen.getByTestId("is-auth").textContent).toBe("false");
     expect(screen.getByTestId("user-email").textContent).toBe("none");
     expect(screen.getByTestId("token").textContent).toBe("none");
   });
 
-  it("login sets token, user and isAuth = true", async () => {
-    renderWithAuth();
+  it("login sets isAuth, user, and token", async () => {
+    setup();
     await userEvent.click(screen.getByTestId("login-btn"));
     expect(screen.getByTestId("is-auth").textContent).toBe("true");
     expect(screen.getByTestId("user-email").textContent).toBe("alice@test.com");
@@ -61,7 +57,7 @@ describe("AuthContext", () => {
   });
 
   it("login persists to localStorage", async () => {
-    renderWithAuth();
+    setup();
     await userEvent.click(screen.getByTestId("login-btn"));
     expect(localStorage.getItem("sf_token")).toBe("test-token");
     expect(JSON.parse(localStorage.getItem("sf_user")).email).toBe(
@@ -69,8 +65,8 @@ describe("AuthContext", () => {
     );
   });
 
-  it("logout clears token, user and isAuth", async () => {
-    renderWithAuth();
+  it("logout clears state", async () => {
+    setup();
     await userEvent.click(screen.getByTestId("login-btn"));
     await userEvent.click(screen.getByTestId("logout-btn"));
     expect(screen.getByTestId("is-auth").textContent).toBe("false");
@@ -78,21 +74,21 @@ describe("AuthContext", () => {
     expect(screen.getByTestId("token").textContent).toBe("none");
   });
 
-  it("logout removes items from localStorage", async () => {
-    renderWithAuth();
+  it("logout clears localStorage", async () => {
+    setup();
     await userEvent.click(screen.getByTestId("login-btn"));
     await userEvent.click(screen.getByTestId("logout-btn"));
     expect(localStorage.getItem("sf_token")).toBeNull();
     expect(localStorage.getItem("sf_user")).toBeNull();
   });
 
-  it("restores auth state from localStorage on mount", () => {
+  it("restores session from localStorage on mount", () => {
     localStorage.setItem("sf_token", "saved-token");
     localStorage.setItem(
       "sf_user",
       JSON.stringify({ id: "2", name: "Bob", email: "bob@test.com" }),
     );
-    renderWithAuth();
+    setup();
     expect(screen.getByTestId("is-auth").textContent).toBe("true");
     expect(screen.getByTestId("user-email").textContent).toBe("bob@test.com");
   });

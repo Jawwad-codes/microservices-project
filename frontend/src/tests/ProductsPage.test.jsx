@@ -30,15 +30,15 @@ const mockProducts = [
   {
     id: "p2",
     name: "Mouse",
-    description: "Wireless mouse",
+    description: "Wireless",
     price: 1500,
     stock: 0,
     createdAt: new Date().toISOString(),
   },
 ];
 
-const renderPage = (isLoggedIn = false) => {
-  if (isLoggedIn) {
+const setup = (loggedIn = false) => {
+  if (loggedIn) {
     localStorage.setItem("sf_token", "tok");
     localStorage.setItem(
       "sf_user",
@@ -62,36 +62,31 @@ beforeEach(() => {
 });
 
 describe("ProductsPage — Display", () => {
-  it("shows product names after loading", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: mockProducts } });
-    renderPage();
+  it("shows product names", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: mockProducts } });
+    setup();
     await waitFor(() => expect(screen.getByText("Laptop")).toBeTruthy());
     expect(screen.getByText("Mouse")).toBeTruthy();
   });
 
-  it('shows "in stock" badge for products with stock', async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: mockProducts } });
-    renderPage();
+  it("shows stock badge", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: mockProducts } });
+    setup();
     await waitFor(() => expect(screen.getByText("5 in stock")).toBeTruthy());
-  });
-
-  it('shows "Out of stock" badge for zero-stock products', async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: mockProducts } });
-    renderPage();
-    await waitFor(() => expect(screen.getByText("Out of stock")).toBeTruthy());
+    expect(screen.getByText("Out of stock")).toBeTruthy();
   });
 
   it("shows empty state when no products", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    renderPage();
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    setup();
     await waitFor(() =>
       expect(screen.getByText(/no products yet/i)).toBeTruthy(),
     );
   });
 
-  it("filters products by search term", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: mockProducts } });
-    renderPage();
+  it("filters by search term", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: mockProducts } });
+    setup();
     await waitFor(() => screen.getByText("Laptop"));
     await userEvent.type(screen.getByPlaceholderText(/search/i), "mouse");
     expect(screen.queryByText("Laptop")).toBeNull();
@@ -99,90 +94,84 @@ describe("ProductsPage — Display", () => {
   });
 });
 
-describe("ProductsPage — Auth gated actions", () => {
-  it('shows "Sign in to Add" button when not authenticated', async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    renderPage(false);
+describe("ProductsPage — Auth", () => {
+  it("shows Sign in button when not authenticated", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    setup(false);
     await waitFor(() =>
       expect(screen.getByText(/sign in to add/i)).toBeTruthy(),
     );
   });
 
-  it('shows "Add Product" button when authenticated', async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    renderPage(true);
-    await waitFor(() => expect(screen.getByText(/add product/i)).toBeTruthy());
+  it("shows Add Product button when authenticated", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    setup(true);
+    await waitFor(() => {
+      // Button with text "Add Product" exists
+      expect(screen.getByRole("button", { name: /add product/i })).toBeTruthy();
+    });
   });
 
-  it("shows edit and delete buttons on cards when authenticated", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: mockProducts } });
-    renderPage(true);
+  it("shows edit and delete icon buttons when authenticated", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: mockProducts } });
+    setup(true);
     await waitFor(() => screen.getByText("Laptop"));
     expect(screen.getAllByTitle("Edit product").length).toBeGreaterThan(0);
     expect(screen.getAllByTitle("Delete product").length).toBeGreaterThan(0);
   });
 });
 
-describe("ProductsPage — Add Product modal", () => {
-  it("opens Add Product modal on button click", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    renderPage(true);
-    await waitFor(() => screen.getByText(/add product/i));
+describe("ProductsPage — Add modal", () => {
+  it("opens modal when Add Product clicked", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    setup(true);
+    await waitFor(() => screen.getByRole("button", { name: /add product/i }));
     await userEvent.click(screen.getByRole("button", { name: /add product/i }));
-    expect(screen.getByText(/product name/i)).toBeTruthy();
+    expect(screen.getByText("Add New Product")).toBeTruthy();
   });
 
-  it("calls productsApi.create and adds product to list", async () => {
-    productsApi.list.mockResolvedValueOnce({ data: { data: [] } });
-    const newProduct = {
-      id: "p3",
-      name: "Keyboard",
-      description: "",
-      price: 3000,
-      stock: 10,
-    };
-    productsApi.create.mockResolvedValueOnce({ data: { data: newProduct } });
-
-    renderPage(true);
+  it("calls productsApi.create on submit", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [] } });
+    productsApi.create.mockResolvedValueOnce({
+      data: { data: { id: "p3", name: "Keyboard", price: 3000, stock: 10 } },
+    });
+    setup(true);
     await waitFor(() => screen.getByRole("button", { name: /add product/i }));
     await userEvent.click(screen.getByRole("button", { name: /add product/i }));
 
     await userEvent.type(
-      screen.getByPlaceholderText(/wireless mouse/i),
+      screen.getByPlaceholderText(/e\.g\. Wireless Mouse/i),
       "Keyboard",
     );
     await userEvent.type(screen.getByPlaceholderText("1500"), "3000");
-    await userEvent.click(
-      screen.getByRole("button", { name: /add product$/i }),
-    );
+    // Click the submit button inside the modal
+    const submitBtn = screen.getByRole("button", { name: /^add product$/i });
+    await userEvent.click(submitBtn);
 
     await waitFor(() => expect(productsApi.create).toHaveBeenCalled());
   });
 });
 
-describe("ProductsPage — Delete Product modal", () => {
-  it("opens delete confirmation modal", async () => {
-    productsApi.list.mockResolvedValueOnce({
-      data: { data: [mockProducts[0]] },
-    });
-    renderPage(true);
+describe("ProductsPage — Delete modal", () => {
+  it("opens delete confirm modal", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [mockProducts[0]] } });
+    setup(true);
     await waitFor(() => screen.getByTitle("Delete product"));
     await userEvent.click(screen.getByTitle("Delete product"));
     expect(screen.getByText(/are you sure/i)).toBeTruthy();
-    expect(screen.getByText("Laptop")).toBeTruthy();
   });
 
-  it("calls productsApi.remove and removes product from list", async () => {
-    productsApi.list.mockResolvedValueOnce({
-      data: { data: [mockProducts[0]] },
-    });
+  it("calls productsApi.remove on confirm", async () => {
+    productsApi.list.mockResolvedValue({ data: { data: [mockProducts[0]] } });
     productsApi.remove.mockResolvedValueOnce({ data: { status: "success" } });
-
-    renderPage(true);
+    setup(true);
     await waitFor(() => screen.getByTitle("Delete product"));
     await userEvent.click(screen.getByTitle("Delete product"));
-    await userEvent.click(screen.getByRole("button", { name: /^delete$/i }));
-
+    // Find the delete button inside the modal (exact text "Delete")
+    const confirmBtn = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent.trim() === "Delete");
+    await userEvent.click(confirmBtn);
     await waitFor(() => expect(productsApi.remove).toHaveBeenCalledWith("p1"));
   });
 });

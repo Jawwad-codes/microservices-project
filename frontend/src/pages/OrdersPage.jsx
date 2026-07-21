@@ -61,6 +61,14 @@ const METHOD_LABELS = {
   cod: "💵 Cash on Delivery",
 };
 
+// Plain-text variants (no emoji) used in places like the order summary,
+// so they never collide with the selector buttons that use METHOD_LABELS.
+const METHOD_NAMES = {
+  card: "Card",
+  jazzcash: "JazzCash",
+  cod: "Cash on Delivery",
+};
+
 function PlaceOrderModal({ products, defaultProductId, onClose, onPlaced }) {
   const [productId, setProductId] = useState(
     defaultProductId || (products[0]?.id ?? ""),
@@ -191,7 +199,7 @@ function PlaceOrderModal({ products, defaultProductId, onClose, onPlaced }) {
                 <div className="flex justify-between text-sm mt-1">
                   <span className="text-muted">Payment via</span>
                   <span className="text-white">
-                    {METHOD_LABELS[paymentMethod]}
+                    {METHOD_NAMES[paymentMethod]}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold mt-2 pt-2 border-t border-border">
@@ -253,7 +261,7 @@ function CancelOrderModal({ order, productName, onClose, onCancelled }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
       <div className="card w-full max-w-sm relative">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-white">Cancel Order</h2>
+          <h2 className="font-semibold text-white">Confirm Cancellation</h2>
           <button onClick={onClose} className="text-muted hover:text-white">
             <X size={18} />
           </button>

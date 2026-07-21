@@ -17,5 +17,10 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./src/tests/setup.js",
     css: false,
+    // Only pick up tests inside the frontend src folder
+    include: ["src/tests/**/*.{test,spec}.{js,jsx,ts,tsx}"],
+    env: {
+      VITE_GATEWAY_URL: "http://localhost:8080",
+    },
   },
 });

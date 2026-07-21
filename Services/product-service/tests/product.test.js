@@ -2,27 +2,32 @@
 
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
-const app = require("../src/app");
 
 process.env.JWT_SECRET = "test_jwt_secret";
+process.env.DATABASE_URL = "postgresql://fake:fake@localhost:5432/fake";
 
-// Mock Prisma
 jest.mock("@prisma/client", () => {
-  return {
-    PrismaClient: jest.fn().mockImplementation(() => ({
-      product: {
-        create: jest.fn(),
-        findMany: jest.fn(),
-        findUnique: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
-    })),
+  const mProduct = {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   };
+  const instance = { product: mProduct };
+  const PrismaClient = jest.fn(() => instance);
+  PrismaClient._instance = instance;
+  return { PrismaClient };
 });
 
 const { PrismaClient } = require("@prisma/client");
-let prisma;
+const app = require("../src/app");
+const db = PrismaClient._instance;
+
+const validToken = jwt.sign(
+  { id: "user-uuid-1", email: "admin@example.com", name: "Admin" },
+  "test_jwt_secret",
+);
 
 const mockProduct = {
   id: "prod-uuid-1",
@@ -33,19 +38,11 @@ const mockProduct = {
   createdAt: new Date("2024-01-01"),
 };
 
-// Generate a valid JWT for authenticated routes
-const validToken = jwt.sign(
-  { id: "user-uuid-1", email: "admin@example.com", name: "Admin" },
-  "test_jwt_secret",
-);
+beforeEach(() => jest.clearAllMocks());
 
-beforeEach(() => {
-  prisma = new PrismaClient();
-  jest.clearAllMocks();
-});
-
-describe("Product Service — Health", () => {
-  it("GET /health returns ok", async () => {
+// ─────────────────────────────────────────────────────────────────────────────
+describe("Health", () => {
+  it("GET /health → 200 ok", async () => {
     const res = await request(app).get("/health");
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe("ok");
@@ -53,10 +50,9 @@ describe("Product Service — Health", () => {
   });
 });
 
-describe("Product Service — List GET /products", () => {
-  it("returns list of products without auth", async () => {
-    prisma.product.findMany.mockResolvedValue([mockProduct]);
-
+describe("GET /products", () => {
+  it("200 – list products (no auth)", async () => {
+    db.product.findMany.mockResolvedValue([mockProduct]);
     const res = await request(app).get("/products");
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe("success");
@@ -64,58 +60,51 @@ describe("Product Service — List GET /products", () => {
     expect(res.body.data[0].name).toBe("Test Product");
   });
 
-  it("returns empty array when no products", async () => {
-    prisma.product.findMany.mockResolvedValue([]);
-
+  it("200 – returns empty array", async () => {
+    db.product.findMany.mockResolvedValue([]);
     const res = await request(app).get("/products");
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toEqual([]);
   });
 });
 
-describe("Product Service — Get one GET /products/:id", () => {
-  it("returns a single product by id", async () => {
-    prisma.product.findUnique.mockResolvedValue(mockProduct);
-
+describe("GET /products/:id", () => {
+  it("200 – returns product", async () => {
+    db.product.findUnique.mockResolvedValue(mockProduct);
     const res = await request(app).get("/products/prod-uuid-1");
     expect(res.statusCode).toBe(200);
     expect(res.body.data.id).toBe("prod-uuid-1");
   });
 
-  it("returns 404 for non-existent product", async () => {
-    prisma.product.findUnique.mockResolvedValue(null);
-
+  it("404 – not found", async () => {
+    db.product.findUnique.mockResolvedValue(null);
     const res = await request(app).get("/products/nonexistent");
     expect(res.statusCode).toBe(404);
-    expect(res.body.status).toBe("error");
   });
 });
 
-describe("Product Service — Create POST /products", () => {
-  it("rejects creation without auth token", async () => {
+describe("POST /products", () => {
+  it("401 – no token", async () => {
     const res = await request(app)
       .post("/products")
-      .send({ name: "New Product", price: 500, stock: 5 });
+      .send({ name: "X", price: 100 });
     expect(res.statusCode).toBe(401);
   });
 
-  it("creates a product with valid auth and data", async () => {
-    prisma.product.create.mockResolvedValue({
+  it("201 – creates product", async () => {
+    db.product.create.mockResolvedValue({
       ...mockProduct,
       name: "New Product",
     });
-
     const res = await request(app)
       .post("/products")
       .set("Authorization", `Bearer ${validToken}`)
       .send({ name: "New Product", price: 500, stock: 5 });
-
     expect(res.statusCode).toBe(201);
-    expect(res.body.status).toBe("success");
     expect(res.body.data.name).toBe("New Product");
   });
 
-  it("returns 400 for invalid product data (short name)", async () => {
+  it("400 – name too short", async () => {
     const res = await request(app)
       .post("/products")
       .set("Authorization", `Bearer ${validToken}`)
@@ -123,45 +112,43 @@ describe("Product Service — Create POST /products", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("returns 400 for negative price", async () => {
+  it("400 – negative price", async () => {
     const res = await request(app)
       .post("/products")
       .set("Authorization", `Bearer ${validToken}`)
-      .send({ name: "Valid Name", price: -10 });
+      .send({ name: "Widget", price: -10 });
     expect(res.statusCode).toBe(400);
   });
 
-  it("returns 400 for missing price", async () => {
+  it("400 – missing price", async () => {
     const res = await request(app)
       .post("/products")
       .set("Authorization", `Bearer ${validToken}`)
-      .send({ name: "Valid Name", stock: 5 });
+      .send({ name: "Widget", stock: 5 });
     expect(res.statusCode).toBe(400);
   });
 });
 
-describe("Product Service — Edit PUT /products/:id", () => {
-  it("rejects edit without auth token", async () => {
+describe("PUT /products/:id", () => {
+  it("401 – no token", async () => {
     const res = await request(app)
       .put("/products/prod-uuid-1")
       .send({ price: 2000 });
     expect(res.statusCode).toBe(401);
   });
 
-  it("updates a product with valid data", async () => {
-    prisma.product.findUnique.mockResolvedValue(mockProduct);
-    prisma.product.update.mockResolvedValue({ ...mockProduct, price: 2000 });
-
+  it("200 – updates product", async () => {
+    db.product.findUnique.mockResolvedValue(mockProduct);
+    db.product.update.mockResolvedValue({ ...mockProduct, price: 2000 });
     const res = await request(app)
       .put("/products/prod-uuid-1")
       .set("Authorization", `Bearer ${validToken}`)
       .send({ price: 2000 });
-
     expect(res.statusCode).toBe(200);
     expect(res.body.data.price).toBe(2000);
   });
 
-  it("returns 400 when update body is empty", async () => {
+  it("400 – empty body", async () => {
     const res = await request(app)
       .put("/products/prod-uuid-1")
       .set("Authorization", `Bearer ${validToken}`)
@@ -169,9 +156,8 @@ describe("Product Service — Edit PUT /products/:id", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("returns 404 for non-existent product", async () => {
-    prisma.product.findUnique.mockResolvedValue(null);
-
+  it("404 – not found", async () => {
+    db.product.findUnique.mockResolvedValue(null);
     const res = await request(app)
       .put("/products/nonexistent")
       .set("Authorization", `Bearer ${validToken}`)
@@ -180,28 +166,24 @@ describe("Product Service — Edit PUT /products/:id", () => {
   });
 });
 
-describe("Product Service — Delete DELETE /products/:id", () => {
-  it("rejects delete without auth token", async () => {
+describe("DELETE /products/:id", () => {
+  it("401 – no token", async () => {
     const res = await request(app).delete("/products/prod-uuid-1");
     expect(res.statusCode).toBe(401);
   });
 
-  it("deletes a product successfully", async () => {
-    prisma.product.findUnique.mockResolvedValue(mockProduct);
-    prisma.product.delete.mockResolvedValue(mockProduct);
-
+  it("200 – deletes product", async () => {
+    db.product.findUnique.mockResolvedValue(mockProduct);
+    db.product.delete.mockResolvedValue(mockProduct);
     const res = await request(app)
       .delete("/products/prod-uuid-1")
       .set("Authorization", `Bearer ${validToken}`);
-
     expect(res.statusCode).toBe(200);
-    expect(res.body.status).toBe("success");
     expect(res.body.message).toBe("Product deleted");
   });
 
-  it("returns 404 when deleting non-existent product", async () => {
-    prisma.product.findUnique.mockResolvedValue(null);
-
+  it("404 – not found", async () => {
+    db.product.findUnique.mockResolvedValue(null);
     const res = await request(app)
       .delete("/products/nonexistent")
       .set("Authorization", `Bearer ${validToken}`);
@@ -209,43 +191,37 @@ describe("Product Service — Delete DELETE /products/:id", () => {
   });
 });
 
-describe("Product Service — Stock PATCH /products/:id/stock", () => {
-  it("decrements stock (negative quantity)", async () => {
-    prisma.product.findUnique.mockResolvedValue(mockProduct);
-    prisma.product.update.mockResolvedValue({ ...mockProduct, stock: 7 });
-
+describe("PATCH /products/:id/stock", () => {
+  it("200 – decrements stock", async () => {
+    db.product.findUnique.mockResolvedValue(mockProduct); // stock:10
+    db.product.update.mockResolvedValue({ ...mockProduct, stock: 7 });
     const res = await request(app)
       .patch("/products/prod-uuid-1/stock")
       .send({ quantity: -3 });
-
     expect(res.statusCode).toBe(200);
     expect(res.body.data.stock).toBe(7);
   });
 
-  it("increments stock (positive quantity)", async () => {
-    prisma.product.findUnique.mockResolvedValue(mockProduct);
-    prisma.product.update.mockResolvedValue({ ...mockProduct, stock: 15 });
-
+  it("200 – increments stock", async () => {
+    db.product.findUnique.mockResolvedValue(mockProduct);
+    db.product.update.mockResolvedValue({ ...mockProduct, stock: 15 });
     const res = await request(app)
       .patch("/products/prod-uuid-1/stock")
       .send({ quantity: 5 });
-
     expect(res.statusCode).toBe(200);
     expect(res.body.data.stock).toBe(15);
   });
 
-  it("returns 400 for insufficient stock", async () => {
-    prisma.product.findUnique.mockResolvedValue({ ...mockProduct, stock: 2 });
-
+  it("400 – insufficient stock", async () => {
+    db.product.findUnique.mockResolvedValue({ ...mockProduct, stock: 2 });
     const res = await request(app)
       .patch("/products/prod-uuid-1/stock")
-      .send({ quantity: -5 }); // more than available
-
+      .send({ quantity: -5 });
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toMatch(/insufficient/i);
   });
 
-  it("returns 400 for non-integer quantity", async () => {
+  it("400 – non-integer quantity", async () => {
     const res = await request(app)
       .patch("/products/prod-uuid-1/stock")
       .send({ quantity: 1.5 });

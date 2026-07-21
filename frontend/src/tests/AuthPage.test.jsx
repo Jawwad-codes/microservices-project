@@ -8,15 +8,12 @@ import AuthPage from "../pages/AuthPage";
 import { AuthProvider } from "../context/AuthContext";
 
 vi.mock("../api/client", () => ({
-  authApi: {
-    login: vi.fn(),
-    register: vi.fn(),
-  },
+  authApi: { login: vi.fn(), register: vi.fn() },
 }));
 
 import { authApi } from "../api/client";
 
-const renderPage = () =>
+const setup = () =>
   render(
     <MemoryRouter>
       <AuthProvider>
@@ -31,21 +28,25 @@ beforeEach(() => {
 });
 
 describe("AuthPage — Layout", () => {
-  it("renders Sign In form by default", () => {
-    renderPage();
-    expect(screen.getByRole("button", { name: /sign in/i })).toBeTruthy();
-    expect(screen.getByPlaceholderText(/you@example.com/i)).toBeTruthy();
+  it("shows Sign In form by default", () => {
+    setup();
+    // The submit button text
+    expect(screen.getByRole("button", { name: /^sign in$/i })).toBeTruthy();
   });
 
-  it("switches to Register tab", async () => {
-    renderPage();
-    await userEvent.click(screen.getByRole("button", { name: /register/i }));
-    expect(screen.getByPlaceholderText(/jawwad ahmed/i)).toBeTruthy();
+  it("switches to Register form", async () => {
+    setup();
+    // Click the tab button labelled "Register"
+    const registerTab = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent.trim() === "Register");
+    await userEvent.click(registerTab);
+    expect(screen.getByPlaceholderText(/Jawwad Ahmed/i)).toBeTruthy();
   });
 });
 
 describe("AuthPage — Login", () => {
-  it("calls authApi.login with form values", async () => {
+  it("calls authApi.login with entered values", async () => {
     authApi.login.mockResolvedValueOnce({
       data: {
         data: {
@@ -54,17 +55,17 @@ describe("AuthPage — Login", () => {
         },
       },
     });
+    setup();
 
-    renderPage();
     await userEvent.type(
-      screen.getByPlaceholderText(/you@example.com/i),
+      screen.getByPlaceholderText(/you@example\.com/i),
       "a@b.com",
     );
     await userEvent.type(
-      screen.getByPlaceholderText(/••••••••/i),
+      screen.getByPlaceholderText(/••••••••/),
       "password123",
     );
-    await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    await userEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
 
     await waitFor(() =>
       expect(authApi.login).toHaveBeenCalledWith({
@@ -74,18 +75,18 @@ describe("AuthPage — Login", () => {
     );
   });
 
-  it("shows error message on login failure", async () => {
+  it("shows error on login failure", async () => {
     authApi.login.mockRejectedValueOnce({
       response: { data: { message: "Invalid credentials" } },
     });
+    setup();
 
-    renderPage();
     await userEvent.type(
-      screen.getByPlaceholderText(/you@example.com/i),
+      screen.getByPlaceholderText(/you@example\.com/i),
       "bad@b.com",
     );
-    await userEvent.type(screen.getByPlaceholderText(/••••••••/i), "wrongpass");
-    await userEvent.click(screen.getByRole("button", { name: /sign in/i }));
+    await userEvent.type(screen.getByPlaceholderText(/••••••••/), "wrongpass");
+    await userEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
 
     await waitFor(() =>
       expect(screen.getByText(/invalid credentials/i)).toBeTruthy(),
@@ -94,21 +95,28 @@ describe("AuthPage — Login", () => {
 });
 
 describe("AuthPage — Register", () => {
-  it("calls authApi.register and switches to login tab on success", async () => {
-    authApi.register.mockResolvedValueOnce({ data: { status: "success" } });
+  const switchToRegister = async () => {
+    const registerTab = screen
+      .getAllByRole("button")
+      .find((b) => b.textContent.trim() === "Register");
+    await userEvent.click(registerTab);
+  };
 
-    renderPage();
-    await userEvent.click(screen.getByRole("button", { name: /register/i }));
+  it("calls authApi.register with form values", async () => {
+    authApi.register.mockResolvedValueOnce({ data: { status: "success" } });
+    setup();
+    await switchToRegister();
+
     await userEvent.type(
-      screen.getByPlaceholderText(/jawwad ahmed/i),
+      screen.getByPlaceholderText(/Jawwad Ahmed/i),
       "New User",
     );
     await userEvent.type(
-      screen.getByPlaceholderText(/you@example.com/i),
+      screen.getByPlaceholderText(/you@example\.com/i),
       "new@b.com",
     );
     await userEvent.type(
-      screen.getByPlaceholderText(/min 6 characters/i),
+      screen.getByPlaceholderText(/Min 6 characters/i),
       "password123",
     );
     await userEvent.click(
@@ -122,26 +130,48 @@ describe("AuthPage — Register", () => {
         password: "password123",
       }),
     );
-    // Should switch back to login tab showing success message
+  });
+
+  it("shows success message after registration", async () => {
+    authApi.register.mockResolvedValueOnce({ data: { status: "success" } });
+    setup();
+    await switchToRegister();
+
+    await userEvent.type(
+      screen.getByPlaceholderText(/Jawwad Ahmed/i),
+      "New User",
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText(/you@example\.com/i),
+      "new@b.com",
+    );
+    await userEvent.type(
+      screen.getByPlaceholderText(/Min 6 characters/i),
+      "password123",
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /create account/i }),
+    );
+
     await waitFor(() =>
       expect(screen.getByText(/account created/i)).toBeTruthy(),
     );
   });
 
-  it("shows error message on register failure", async () => {
+  it("shows error on register failure", async () => {
     authApi.register.mockRejectedValueOnce({
       response: { data: { message: "Email already taken" } },
     });
+    setup();
+    await switchToRegister();
 
-    renderPage();
-    await userEvent.click(screen.getByRole("button", { name: /register/i }));
-    await userEvent.type(screen.getByPlaceholderText(/jawwad ahmed/i), "User");
+    await userEvent.type(screen.getByPlaceholderText(/Jawwad Ahmed/i), "User");
     await userEvent.type(
-      screen.getByPlaceholderText(/you@example.com/i),
+      screen.getByPlaceholderText(/you@example\.com/i),
       "exists@b.com",
     );
     await userEvent.type(
-      screen.getByPlaceholderText(/min 6 characters/i),
+      screen.getByPlaceholderText(/Min 6 characters/i),
       "pass123",
     );
     await userEvent.click(
