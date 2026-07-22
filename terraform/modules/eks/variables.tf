@@ -25,7 +25,6 @@ variable "security_group_ids" {
 
 variable "instance_types" {
   type = list(string)
-  default = ["t3.medium"]
 }
 
 variable "capacity_type" {

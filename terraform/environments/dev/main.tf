@@ -133,7 +133,7 @@ module "eks" {
     module.eks_node_sg.security_group_id
   ]
 
-  instance_types = ["t3.medium"]
+  instance_types = var.instance_types
 
   desired_size = 2
 
@@ -143,6 +143,6 @@ module "eks" {
 
   tags = {
     Environment = "dev"
-    Project = "Microservices"
+    Project     = "Microservices"
   }
 }

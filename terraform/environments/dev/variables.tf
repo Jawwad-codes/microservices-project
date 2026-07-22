@@ -97,16 +97,16 @@ variable "db_password" {
 }
 
 
-variable cluster_name {
+variable "cluster_name" {
   type = string
 }
 
 
-variable cluster_version {
+variable "cluster_version" {
   type = string
 }
 
-variable instance_types {
+variable "instance_types" {
   type = list(string)
 }
 
