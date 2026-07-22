@@ -6,11 +6,15 @@ on:
   push:
     branches:
       - development
+    paths:
+      - services/**
 
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: "services"
     env:
       SERVICES: "user-service product-service order-service payment-service notification-service api-gateway"
 
