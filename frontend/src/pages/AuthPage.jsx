@@ -32,7 +32,7 @@ function InputField({
           autoComplete={autoComplete}
           className={clsx(
             "input pr-10",
-            error && "border-down focus:border-down focus:ring-down/20",
+            error && "border-down focus:border-down focus:ring-down/10",
           )}
         />
         {isPassword && (
