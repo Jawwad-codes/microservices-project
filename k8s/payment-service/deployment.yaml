@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: payment-service:latest
+          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/payment-service:latest
           imagePullPolicy: IfNotPresent
 
           ports:

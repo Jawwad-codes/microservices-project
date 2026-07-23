@@ -1,0 +1,59 @@
+# @format
+
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/**"
+      - ".github/workflows/ci-backend.yml"
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 792705600668.dkr.ecr.ap-south-1.amazonaws.com
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          [
+            user-service,
+            order-service,
+            payment-service,
+            product-service,
+            notification-service,
+            api-gateway,
+          ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS mein login karo
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: ECR Login
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+          docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
+      - name: Image Tag (short commit SHA)
+        id: tag
+        run: echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Docker image build
+        run: |
+          docker build \
+            -t ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }} \
+            -t ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:latest \
+            ./services/${{ matrix.service }}
+
+      - name: Push Image to ECR
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:latest

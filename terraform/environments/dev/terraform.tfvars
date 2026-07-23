@@ -101,6 +101,8 @@ db_name = "microservices"
 
 db_username = "postgres"
 
+db_password = "jnba2236$$"
+
 
 
 cluster_name = "microservices-dev"

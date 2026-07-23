@@ -1,106 +1,108 @@
 # @format
 
-name: Terraform Infra Pipeline
+# # @format
 
-on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "terraform/**"
-  push:
-    branches: [main]
-    paths:
-      - "terraform/**"
+# name: Terraform Infra Pipeline
 
-env:
-  AWS_REGION: ap-south-1
-  TF_WORKING_DIR: terraform/environments/dev
+# on:
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - "terraform/**"
+#   push:
+#     branches: [main]
+#     paths:
+#       - "terraform/**"
 
-jobs:
-  terraform-plan:
-    # Plan job ab PR aur Push dono par chalega
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
-    steps:
-      - uses: actions/checkout@v4
+# env:
+#   AWS_REGION: ap-south-1
+#   TF_WORKING_DIR: terraform/environments/dev
 
-      - name: Terraform install karo
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.15.8"
+# jobs:
+#   terraform-plan:
+#     # Plan job ab PR aur Push dono par chalega
+#     if: github.event_name == 'pull_request' || github.event_name == 'push'
+#     runs-on: ubuntu-latest
+#     defaults:
+#       run:
+#         working-directory: ${{ env.TF_WORKING_DIR }}
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: AWS mein login karo
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+#       - name: Terraform install karo
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: "1.15.8"
 
-      - name: Format check
-        run: terraform fmt -check -recursive
+#       - name: AWS mein login karo
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform init
+#       - name: Format check
+#         run: terraform fmt -check -recursive
 
-      - name: Terraform Validate
-        run: terraform validate
+#       - name: Terraform Init
+#         run: terraform init
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color -input=false -out=tfplan -var-file=terraform.tfvars
-        env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+#       - name: Terraform Validate
+#         run: terraform validate
 
-      # PR comment sirf Pull Request par dikhao
-      - name: Plan ko PR mein comment karo
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const output = `#### Terraform Plan Result ✅\n\nPlan successfully created.`;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
+#       - name: Terraform Plan
+#         id: plan
+#         run: terraform plan -no-color -input=false -out=tfplan -var-file=terraform.tfvars
+#         env:
+#           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
 
-  # ========================== APPLY JOB ==========================
+#       # PR comment sirf Pull Request par dikhao
+#       - name: Plan ko PR mein comment karo
+#         if: github.event_name == 'pull_request'
+#         uses: actions/github-script@v7
+#         with:
+#           script: |
+#             const output = `#### Terraform Plan Result ✅\n\nPlan successfully created.`;
+#             github.rest.issues.createComment({
+#               issue_number: context.issue.number,
+#               owner: context.repo.owner,
+#               repo: context.repo.repo,
+#               body: output
+#             });
 
-  terraform-apply:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
-    defaults:
-      run:
-        working-directory: ${{ env.TF_WORKING_DIR }}
-    steps:
-      - uses: actions/checkout@v4
+#   # ========================== APPLY JOB ==========================
 
-      - name: Terraform install karo
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.15.8"
+#   terraform-apply:
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#     runs-on: ubuntu-latest
+#     environment: production
+#     defaults:
+#       run:
+#         working-directory: ${{ env.TF_WORKING_DIR }}
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: AWS mein login karo
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+#       - name: Terraform install karo
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: "1.15.8"
 
-      - name: Terraform Init
-        run: terraform init
+#       - name: AWS mein login karo
+#         uses: aws-actions/configure-aws-credentials@v4
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform Plan (before apply)
-        run: terraform plan -no-color -input=false -out=tfplan -var-file=terraform.tfvars
-        env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+#       - name: Terraform Init
+#         run: terraform init
 
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
-        env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+#       - name: Terraform Plan (before apply)
+#         run: terraform plan -no-color -input=false -out=tfplan -var-file=terraform.tfvars
+#         env:
+#           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
+#       - name: Terraform Apply
+#         run: terraform apply -auto-approve tfplan
+#         env:
+#           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
