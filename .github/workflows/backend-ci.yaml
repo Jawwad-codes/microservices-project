@@ -1,17 +1,13 @@
 # @format
+
 name: Backend CI
 
 on:
   push:
-    branches: [main, development] # Added develop branch
+    branches: [development]
     paths:
       - "services/**"
-      - ".github/workflows/ci-backend.yml"
-      - "**/Dockerfile" # Added to catch Dockerfile changes
-  pull_request: # Added PR trigger for testing
-    branches: [main]
-    paths:
-      - "services/**"
+      - ".github/workflows/backend-ci.yaml"
 
 env:
   AWS_REGION: ap-south-1
@@ -34,52 +30,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: AWS mein login karo
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2 # Better way to login
-        with:
-          registry-type: public # Remove this if using private ECR
+      - name: ECR Login
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+          docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
-      - name: Generate short SHA
+      - name: Image Tag (short commit SHA)
         id: tag
         run: echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Check if Dockerfile exists
-        id: check
-        run: |
-          if [ -f "./services/${{ matrix.service }}/Dockerfile" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "⚠️ Dockerfile not found for ${{ matrix.service }}"
-          fi
-
-      - name: Build Docker image
-        if: steps.check.outputs.exists == 'true' # Skip if Dockerfile missing
+      - name: Docker image build
         run: |
           docker build \
             -t ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }} \
             -t ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:latest \
-            -f ./services/${{ matrix.service }}/Dockerfile \
             ./services/${{ matrix.service }}
 
-      - name: Push to ECR
-        if: steps.check.outputs.exists == 'true'
+      - name: Push Image to ECR
         run: |
           docker push ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
           docker push ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:latest
-
-      - name: Debug - List files
-        if: failure()
-        run: |
-          echo "Current directory structure:"
-          ls -la
-          echo "Services directory:"
-          ls -la ./services/ || echo "services directory not found"
