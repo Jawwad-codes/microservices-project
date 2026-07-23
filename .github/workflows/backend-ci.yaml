@@ -6,7 +6,7 @@ on:
   push:
     branches: [development]
     paths:
-      - "services/**"
+      - "Services/**"
       - ".github/workflows/backend-ci.yaml"
 
 env:
