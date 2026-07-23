@@ -30,6 +30,16 @@ jobs:
     needs: check-ci-success
     runs-on: ubuntu-latest
     steps:
+      - name: check code
+        uses: actions/checkout@v4
+
+      - name: Check files
+        run: |
+          pwd
+          ls -la
+          ls -la k8s
+          ls -la k8s/namespace
+
       - name: AWS mein login karo
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -41,6 +51,7 @@ jobs:
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
       - name: Namespace create karo
         run: kubectl apply -f k8s/namespace/
+
       - name: 5 databases RDS mein banao (agar exist nahi karte)
         env:
           DB_USER: ${{ secrets.DB_USER }}
