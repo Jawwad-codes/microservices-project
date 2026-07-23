@@ -8,10 +8,10 @@ module "vpc" {
   private_subnet_cidrs = var.private_subnet_cidrs
 }
 
-module "alb_sgs" {
+module "alb_sg" {
   source = "../../modules/security-groups"
 
-  name          = "alb-sgs"
+  name          = "alb-sg"
   description   = "ALB Security Group"
   vpc_id        = module.vpc.vpc_id
   ingress_rules = var.alb_ingress_rules
