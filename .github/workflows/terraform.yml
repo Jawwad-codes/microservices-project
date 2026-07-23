@@ -14,7 +14,7 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  TF_WORKING_DIR: terraform
+  TF_WORKING_DIR: terraform/environments/dev
 
 jobs:
   terraform-plan:
