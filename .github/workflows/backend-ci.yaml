@@ -51,7 +51,7 @@ jobs:
           docker build \
             -t ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }} \
             -t ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:latest \
-            ./services/${{ matrix.service }}
+            ./Services/${{ matrix.service }}
 
       - name: Push Image to ECR
         run: |
