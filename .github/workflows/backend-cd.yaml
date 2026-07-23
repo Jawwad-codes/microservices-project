@@ -4,7 +4,7 @@ name: Backend CD
 
 on:
   workflow_run:
-    workflows: ["backend-ci"]
+    workflows: ["Backend CI"]
     types: [completed]
 
 env:
