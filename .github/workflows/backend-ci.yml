@@ -7,7 +7,7 @@ on:
     branches: [development]
     paths:
       - "Services/**"
-      - ".github/workflows/backend-ci.yaml"
+      - ".github/workflows/backend-ci.yml"
 
 env:
   AWS_REGION: ap-south-1
