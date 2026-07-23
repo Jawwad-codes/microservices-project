@@ -1,0 +1,106 @@
+# @format
+
+name: Terraform Infra Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "terraform/**"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+
+env:
+  AWS_REGION: ap-south-1
+  TF_WORKING_DIR: terraform
+
+jobs:
+  terraform-plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Terraform install karo
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+
+      - name: AWS mein login karo
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Format check karo (code style)
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init (remote state se connect)
+        run: terraform init
+
+      - name: Validate karo (syntax errors check)
+        run: terraform validate
+
+      - name: Plan banao (preview, kuch banega nahi)
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        continue-on-error: true
+
+      - name: Plan ko PR comment mein dikhao
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### Terraform Plan Result
+            \`\`\`
+            Plan ban gaya — review karo apply se pehle
+            \`\`\`
+            `;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Agar plan fail hui to pipeline bhi fail karo
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  # ============================================================
+
+  terraform-apply:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Terraform install karo
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+
+      - name: AWS mein login karo
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform init (remote state se connect)
+        run: terraform init
+
+      - name: Plan banao
+        run: terraform plan -no-color -out=tfplan
+
+      - name: Apply karo
+        run: terraform apply -auto-approve tfplan
