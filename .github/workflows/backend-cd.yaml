@@ -52,6 +52,19 @@ jobs:
       - name: Namespace create karo
         run: kubectl apply -f k8s/namespace/
 
+      - name: Test RDS Connection
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+        run: |
+          kubectl run psql-test \
+          --rm -i --restart=Never \
+          --image=postgres:16-alpine \
+          --env="PGPASSWORD=$DB_PASS" \
+          -- psql "host=$RDS_ENDPOINT port=5432 dbname=postgres user=$DB_USER sslmode=require" \
+          -c "SELECT version();"
+
       - name: 5 databases RDS mein banao (agar exist nahi karte)
         env:
           DB_USER: ${{ secrets.DB_USER }}
