@@ -3,13 +3,13 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, development] # Added develop branch
+    branches: [development] # Added develop branch
     paths:
       - "services/**"
       - ".github/workflows/ci-backend.yml"
       - "**/Dockerfile" # Added to catch Dockerfile changes
   pull_request: # Added PR trigger for testing
-    branches: [main]
+    branches: [development]
     paths:
       - "services/**"
 
