@@ -1,0 +1,175 @@
+# @format
+
+name: Backend CD
+
+on:
+  workflow_run:
+    workflows: ["backend-ci"]
+    types: [completed]
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 792705600668.dkr.ecr.ap-south-1.amazonaws.com
+  EKS_CLUSTER_NAME: microservices-dev
+  NAMESPACE: microservices
+
+jobs:
+  check-ci-success:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    outputs:
+      image_tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Image tag nikaalo (CI wale commit se)
+        id: tag
+        run: echo "tag=${SHA_FULL:0:7}" >> "$GITHUB_OUTPUT"
+        env:
+          SHA_FULL: ${{ github.event.workflow_run.head_sha }}
+
+  db-init:
+    needs: check-ci-success
+    runs-on: ubuntu-latest
+    steps:
+      - name: AWS mein login karo
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: EKS cluster se connect karo
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: 5 databases RDS mein banao (agar exist nahi karte)
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+        run: |
+          kubectl delete job db-init -n ${{ env.NAMESPACE }} --ignore-not-found
+
+          kubectl create job db-init -n ${{ env.NAMESPACE }} \
+            --image=postgres:16-alpine \
+            -- /bin/sh -c '
+              set -e
+              export PGPASSWORD="'"$DB_PASS"'"
+              for db in user_db order_db payment_db product_db notification_db; do
+                exists=$(psql -h "'"$RDS_ENDPOINT"'" -U "'"$DB_USER"'" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='"'"'$db'"'"'")
+                if [ "$exists" != "1" ]; then
+                  echo "Creating $db"
+                  psql -h "'"$RDS_ENDPOINT"'" -U "'"$DB_USER"'" -d postgres -c "CREATE DATABASE $db"
+                else
+                  echo "$db already hai, skip"
+                fi
+              done
+            '
+          kubectl wait --for=condition=complete --timeout=120s job/db-init -n ${{ env.NAMESPACE }}
+          kubectl logs job/db-init -n ${{ env.NAMESPACE }}
+
+  # ============================================================
+  # JOB: SECRETS + CONFIGMAP + INGRESS
+  # ============================================================
+  apply-config:
+    needs: db-init
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS mein login karo
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: EKS cluster se connect karo
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Namespace ready karo
+        run: kubectl apply -f k8s/namespace/
+
+      - name: ConfigMap apply karo
+        run: kubectl apply -f k8s/configmaps/ -n ${{ env.NAMESPACE }}
+
+      - name: Har service ke liye secret banao/update karo
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          declare -A DB_MAP=(
+            [user-secret]=user_db
+            [order-secret]=order_db
+            [payment-secret]=payment_db
+            [product-secret]=product_db
+            [notification-secret]=notification_db
+          )
+          for secret in "${!DB_MAP[@]}"; do
+            db="${DB_MAP[$secret]}"
+            kubectl create secret generic "$secret" \
+              --namespace=${{ env.NAMESPACE }} \
+              --from-literal=JWT_SECRET="$JWT_SECRET" \
+              --from-literal=DATABASE_URL="postgresql://$DB_USER:$DB_PASS@$RDS_ENDPOINT:5432/${db}?schema=public" \
+              --dry-run=client -o yaml | kubectl apply -f -
+          done
+
+      - name: api-gateway ke liye secret banao (DB nahi hai, sirf JWT)
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          kubectl create secret generic api-gateway-secret \
+            --namespace=${{ env.NAMESPACE }} \
+            --from-literal=JWT_SECRET="$JWT_SECRET" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Ingress apply karo
+        run: kubectl apply -f k8s/ingress/ -n ${{ env.NAMESPACE }}
+
+  # ============================================================
+  # JOB: DEPLOY
+  # ============================================================
+  deploy:
+    needs: [check-ci-success, apply-config]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          [
+            user-service,
+            order-service,
+            payment-service,
+            product-service,
+            notification-service,
+            api-gateway,
+          ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS mein login karo
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: EKS cluster se connect karo
+        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Deployment + Service manifest apply karo
+        run: |
+          kubectl apply -f k8s/${{ matrix.service }}/deployment.yaml -n ${{ env.NAMESPACE }}
+          kubectl apply -f k8s/${{ matrix.service }}/service.yaml -n ${{ env.NAMESPACE }}
+
+      - name: Naya image set karo (rolling update start hoga)
+        run: |
+          kubectl set image deployment/${{ matrix.service }} \
+            ${{ matrix.service }}=${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ needs.check-ci-success.outputs.image_tag }} \
+            -n ${{ env.NAMESPACE }}
+
+      - name: Rollout complete hone ka wait karo
+        run: kubectl rollout status deployment/${{ matrix.service }} -n ${{ env.NAMESPACE }} --timeout=180s
+
+      - name: Agar fail ho jaye to purane version pe wapis jao
+        if: failure()
+        run: kubectl rollout undo deployment/${{ matrix.service }} -n ${{ env.NAMESPACE }}
