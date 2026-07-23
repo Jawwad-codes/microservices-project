@@ -1,123 +1,125 @@
 # @format
 
-name: Backend CI - Local Kubernetes (Kind)
+# # @format
 
-on:
-  push:
-    branches:
-      - development
-    paths:
-      - services/**
+# name: Backend CI - Local Kubernetes (Kind)
 
-jobs:
-  backend-ci:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: "services"
-    env:
-      SERVICES: "user-service product-service order-service payment-service notification-service api-gateway"
+# on:
+#   push:
+#     branches:
+#       - development
+#     paths:
+#       - services/**
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+# jobs:
+#   backend-ci:
+#     runs-on: ubuntu-latest
+#     defaults:
+#       run:
+#         working-directory: "services"
+#     env:
+#       SERVICES: "user-service product-service order-service payment-service notification-service api-gateway"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v4
 
-      - name: Setup Kind Cluster
-        uses: helm/kind-action@v1
-        with:
-          version: v0.20.0
-          cluster_name: local-cluster
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
 
-      - name: Build & Test Services
-        shell: bash
-        run: |
-          for service in $SERVICES
-          do
-            echo "=============================="
-            echo "Processing $service"
-            echo "=============================="
+#       - name: Setup Kind Cluster
+#         uses: helm/kind-action@v1
+#         with:
+#           version: v0.20.0
+#           cluster_name: local-cluster
 
-            npm ci --prefix Services/$service
-            npm test --prefix Services/$service -- --watchAll=false || echo "⚠️ Tests failed for $service"
+#       - name: Build & Test Services
+#         shell: bash
+#         run: |
+#           for service in $SERVICES
+#           do
+#             echo "=============================="
+#             echo "Processing $service"
+#             echo "=============================="
 
-            docker build -t $service:latest ./Services/$service
+#             npm ci --prefix Services/$service
+#             npm test --prefix Services/$service -- --watchAll=false || echo "⚠️ Tests failed for $service"
 
-            kind load docker-image $service:latest --name local-cluster
-          done
+#             docker build -t $service:latest ./Services/$service
 
-      - name: Create Namespace
-        run: kubectl apply -f k8s/namespace/namespace.yaml
+#             kind load docker-image $service:latest --name local-cluster
+#           done
 
-      - name: Apply Secrets
-        run: kubectl apply -R -f k8s/secrets/
+#       - name: Create Namespace
+#         run: kubectl apply -f k8s/namespace/namespace.yaml
 
-      - name: Apply ConfigMap
-        run: kubectl apply -f k8s/configmaps/app-config.yaml
+#       - name: Apply Secrets
+#         run: kubectl apply -R -f k8s/secrets/
 
-      - name: Install NGINX Ingress
-        run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+#       - name: Apply ConfigMap
+#         run: kubectl apply -f k8s/configmaps/app-config.yaml
 
-      - name: Wait for Ingress Controller
-        run: |
-          kubectl rollout status deployment/ingress-nginx-controller \
-            -n ingress-nginx \
-            --timeout=300s
+#       - name: Install NGINX Ingress
+#         run: |
+#           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
-      - name: Apply Kubernetes Manifests
-        run: kubectl apply -R -f k8s
+#       - name: Wait for Ingress Controller
+#         run: |
+#           kubectl rollout status deployment/ingress-nginx-controller \
+#             -n ingress-nginx \
+#             --timeout=300s
 
-      - name: Wait for Deployments
-        shell: bash
-        run: |
-          for service in $SERVICES
-          do
-            echo "Waiting for $service..."
+#       - name: Apply Kubernetes Manifests
+#         run: kubectl apply -R -f k8s
 
-            kubectl rollout status deployment/$service \
-              -n microservices \
-              --timeout=300s
-          done
+#       - name: Wait for Deployments
+#         shell: bash
+#         run: |
+#           for service in $SERVICES
+#           do
+#             echo "Waiting for $service..."
 
-      - name: Cluster Information
-        if: always()
-        run: |
-          echo "========== PODS =========="
-          kubectl get pods -A
+#             kubectl rollout status deployment/$service \
+#               -n microservices \
+#               --timeout=300s
+#           done
 
-          echo "========== SERVICES =========="
-          kubectl get svc -A
+#       - name: Cluster Information
+#         if: always()
+#         run: |
+#           echo "========== PODS =========="
+#           kubectl get pods -A
 
-          echo "========== ENDPOINTS =========="
-          kubectl get endpoints -A
+#           echo "========== SERVICES =========="
+#           kubectl get svc -A
 
-          echo "========== INGRESS =========="
-          kubectl get ingress -A
+#           echo "========== ENDPOINTS =========="
+#           kubectl get endpoints -A
 
-      - name: Health Check
-        shell: bash
-        run: |
-          kubectl port-forward \
-            -n ingress-nginx \
-            service/ingress-nginx-controller \
-            8080:80 &
+#           echo "========== INGRESS =========="
+#           kubectl get ingress -A
 
-          sleep 15
+#       - name: Health Check
+#         shell: bash
+#         run: |
+#           kubectl port-forward \
+#             -n ingress-nginx \
+#             service/ingress-nginx-controller \
+#             8080:80 &
 
-          curl -v --retry 10 --retry-delay 5 --fail http://localhost:8080/health
+#           sleep 15
 
-          curl -v --retry 10 --retry-delay 5 --fail http://localhost:8080/health/all
+#           curl -v --retry 10 --retry-delay 5 --fail http://localhost:8080/health
 
-          echo "Application is healthy."
+#           curl -v --retry 10 --retry-delay 5 --fail http://localhost:8080/health/all
 
-      - name: Show API Gateway Logs
-        if: failure()
-        run: |
-          kubectl logs deployment/api-gateway \
-            -n microservices \
-            --tail=200 || true
+#           echo "Application is healthy."
+
+#       - name: Show API Gateway Logs
+#         if: failure()
+#         run: |
+#           kubectl logs deployment/api-gateway \
+#             -n microservices \
+#             --tail=200 || true
