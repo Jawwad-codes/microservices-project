@@ -39,7 +39,8 @@ jobs:
 
       - name: EKS cluster se connect karo
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
-
+      - name: Namespace create karo
+        run: kubectl apply -f k8s/namespace/
       - name: 5 databases RDS mein banao (agar exist nahi karte)
         env:
           DB_USER: ${{ secrets.DB_USER }}
