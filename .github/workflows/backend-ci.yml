@@ -73,8 +73,6 @@ jobs:
         timeout-minutes: 8
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
-          format: table
-          severity: "CRITICAL,HIGH"
           timeout: "5m"
 
       - name: Push Image to ECR
