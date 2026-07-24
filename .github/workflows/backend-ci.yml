@@ -1,7 +1,5 @@
 # @format
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+
 name: Backend CI
 
 on:
