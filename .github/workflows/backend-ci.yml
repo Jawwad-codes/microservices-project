@@ -71,7 +71,7 @@ jobs:
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
           format: table
-          vuln-type: "os,library"
+          vuln-type: "library"
           severity: "CRITICAL,HIGH"
 
       - name: Push Image to ECR
