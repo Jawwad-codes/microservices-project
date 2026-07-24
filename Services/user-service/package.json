@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest --detectOpenHandles --forceExit",
+    "lint": "eslint .",
     "prisma:generate": "prisma generate --schema=./src/prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --name init --schema=./src/prisma/schema.prisma"
   },
