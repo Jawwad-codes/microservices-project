@@ -68,11 +68,13 @@ jobs:
 
       - name: Docker Image Scan Using Trivy
         uses: aquasecurity/trivy-action@v0.36.0
+        timeout-minutes: 8
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
           format: table
-          vuln-type: "library"
+          scanners: "vuln"
           severity: "CRITICAL,HIGH"
+          timeout: "5m"
 
       - name: Push Image to ECR
         run: |
