@@ -20,7 +20,7 @@ jobs:
     outputs:
       image_tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - name: Image tag nikaalo (CI wale commit se)
+      - name: Find Image tag  (CI wale commit se)
         id: tag
         run: echo "tag=${SHA_FULL:0:7}" >> "$GITHUB_OUTPUT"
         env:
