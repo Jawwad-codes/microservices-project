@@ -1,7 +1,5 @@
 # @format
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+
 name: Backend CI
 
 on:
@@ -19,7 +17,6 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 2
       matrix:
         service:
           [
