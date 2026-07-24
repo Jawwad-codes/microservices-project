@@ -36,22 +36,13 @@ jobs:
         with:
           node-version: 22
 
-      - name: install dependencies
-        run: npm ci
-
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Audit Dependencies
-        run: npm audit --audit-level=high
-
-      - name: Run Linter
-        run: npm run lint
-
-      - name: Run Tests
-        run: npm Test
+      - name: Install, Audit, Lint & Test
+        working-directory: ./Services/${{ matrix.service }}
+        run: |
+          npm ci
+          npm audit --audit-level=high
+          npm run lint
+          npm test
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
