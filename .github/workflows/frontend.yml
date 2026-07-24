@@ -8,6 +8,7 @@ on:
       - development
     paths:
       - "frontend/**"
+      - ".github/workflows/frontend.yml"
 jobs:
   frontend-deployment:
     runs-on: ubuntu-latest
