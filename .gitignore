@@ -47,7 +47,7 @@ temp/
 crash.log
 
 # Sensitive variable files
-*.tfvars
+terraform/environment/dev/*.tfvars
 *.tfvars.json
 terraform.tfvars
 # Override files
