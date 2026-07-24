@@ -1,5 +1,7 @@
 # @format
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 name: Backend CI
 
 on:
@@ -72,7 +74,6 @@ jobs:
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
           format: table
-          scanners: "vuln"
           severity: "CRITICAL,HIGH"
           timeout: "5m"
 
