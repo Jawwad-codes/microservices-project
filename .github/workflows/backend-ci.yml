@@ -28,7 +28,28 @@ jobs:
             api-gateway,
           ]
     steps:
-      - uses: actions/checkout@v4
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: setup nodesjs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm ci
+
+      - name: install dependencies
+        run: npm ci
+
+      - name: git leak scan
+        run:
+      - name: Audit Dependencies
+        run: npm audit --audit-level=high
+
+      - name: Run Linter
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm Test
 
       - name: AWS mein login karo
         uses: aws-actions/configure-aws-credentials@v4
