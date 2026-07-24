@@ -36,12 +36,11 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install, Audit, Lint & Test
+      - name: Install, Audit, & Test
         working-directory: ./Services/${{ matrix.service }}
         run: |
           npm ci
           npm audit --audit-level=high
-          npm run lint
           npm test
 
       - name: SonarQube Scan

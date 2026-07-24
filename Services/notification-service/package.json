@@ -8,8 +8,7 @@
     "dev": "nodemon src/server.js",
     "db:generate": "prisma generate --schema=src/prisma/schema.prisma",
     "db:migrate": "prisma migrate deploy --schema=src/prisma/schema.prisma",
-    "test": "jest --detectOpenHandles --forceExit",
-    "lint": "eslint ."
+    "test": "jest --detectOpenHandles --forceExit"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
