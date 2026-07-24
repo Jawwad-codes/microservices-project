@@ -44,7 +44,7 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Audit Dependencies
         run: npm audit --audit-level=high
 
@@ -55,8 +55,8 @@ jobs:
         run: npm Test
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6  
-      
+        uses: SonarSource/sonarqube-scan-action@v6
+
       - name: AWS mein login karo
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -81,16 +81,14 @@ jobs:
             ./Services/${{ matrix.service }}
 
       - name: Docker Image Scan Using Trivy
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
           format: table
-          exit-code: '1'
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-
-                
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
 
       - name: Push Image to ECR
         run: |
