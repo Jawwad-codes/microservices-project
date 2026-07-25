@@ -26,17 +26,6 @@ spec:
         app: user-service
 
     spec:
-      initContainers:
-        - name: migrate
-          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/user-service:latest
-          imagePullPolicy: IfNotPresent
-          command: ["npx", "prisma", "migrate", "deploy"]
-          envFrom:
-            - configMapRef:
-                name: app-config
-            - secretRef:
-                name: user-secret
-
       containers:
         - name: user-service
           image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/user-service:latest
