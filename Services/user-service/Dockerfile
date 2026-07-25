@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -12,16 +12,19 @@ RUN npx prisma generate --schema=./src/prisma/schema.prisma
 
 RUN npm prune --omit=dev
 
-FROM gcr.io/distroless/nodejs20-debian13:nonroot
+FROM node:20-bookworm-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Non-root user banao
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+COPY --from=builder --chown=appuser:appuser /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appuser /app/src ./src
+COPY --from=builder --chown=appuser:appuser /app/package.json ./
+
+USER appuser
 
 EXPOSE 4001
 
-CMD ["src/server.js"]
+CMD ["node", "src/server.js"]

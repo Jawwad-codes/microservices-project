@@ -36,7 +36,6 @@ spec:
                 name: app-config
             - secretRef:
                 name: order-secret
-
       containers:
         - name: order-service
           image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/order-service:latest
