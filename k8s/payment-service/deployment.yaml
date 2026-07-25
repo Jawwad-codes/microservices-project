@@ -26,6 +26,17 @@ spec:
         app: payment-service
 
     spec:
+      initContainers:
+        - name: migrate
+          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/payment-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["npx", "prisma", "migrate", "deploy"]
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: payment-secret
+
       containers:
         - name: payment-service
           image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/payment-service:latest
@@ -33,7 +44,7 @@ spec:
 
           ports:
             - containerPort: 4004
-              
+
           envFrom:
             - configMapRef:
                 name: app-config

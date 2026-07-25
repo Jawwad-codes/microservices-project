@@ -53,7 +53,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Verify AWS identity
         run: aws sts get-caller-identity
-        
+
       - name: EKS cluster se connect karo
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
@@ -139,6 +139,7 @@ jobs:
         run: |
           kubectl set image deployment/${{ matrix.service }} \
             ${{ matrix.service }}=${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ needs.check-ci-success.outputs.image_tag }} \
+            migrate=${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ needs.check-ci-success.outputs.image_tag }} \
             -n ${{ env.NAMESPACE }}
 
       - name: Rollout complete hone ka wait karo
