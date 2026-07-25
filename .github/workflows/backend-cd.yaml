@@ -106,7 +106,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
-      max-parallel: 3
       matrix:
         service:
           [
