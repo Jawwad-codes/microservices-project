@@ -42,7 +42,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Deploy to S3
-        run: aws s3 sync dist s3://jawwad-frontend --delete
+        run: aws s3 sync dist s3://jawwad-microservices-frontend-2026 --delete
 
       - name: Invalidate CloudFront Cache
         run: |
