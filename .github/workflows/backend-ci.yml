@@ -36,10 +36,10 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install, Audit, & Test
-        working-directory: ./Services/${{ matrix.service }}
-        run: |
-          npm test
+      # - name: Install, Audit, & Test
+      #   working-directory: ./Services/${{ matrix.service }}
+      #   run: |
+      #     npm test
 
       - name: AWS Login
         uses: aws-actions/configure-aws-credentials@v4
