@@ -39,8 +39,6 @@ jobs:
       # - name: Install, Audit, & Test
       #   working-directory: ./Services/${{ matrix.service }}
       #   run: |
-      #     npm ci
-      #     npm audit --audit-level=high
       #     npm test
 
       - name: AWS Login
