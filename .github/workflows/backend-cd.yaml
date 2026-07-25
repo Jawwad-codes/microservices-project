@@ -6,6 +6,15 @@ on:
   workflow_run:
     workflows: ["Backend CI"]
     types: [completed]
+    branches: [development]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: backend-cd-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
 
 env:
   AWS_REGION: ap-south-1
@@ -20,83 +29,19 @@ jobs:
     outputs:
       image_tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - name: Find Image tag  (CI wale commit se)
+      - name: Image tag nikalo (CI wale commit se)
         id: tag
-        run: echo "tag=${SHA_FULL:0:7}" >> "$GITHUB_OUTPUT"
         env:
           SHA_FULL: ${{ github.event.workflow_run.head_sha }}
-
-  db-init:
-    needs: check-ci-success
-    runs-on: ubuntu-latest
-    steps:
-      - name: check code
-        uses: actions/checkout@v4
-
-      - name: Check files
-        run: |
-          pwd
-          ls -la
-          ls -la k8s
-          ls -la k8s/namespace
-
-      - name: AWS mein login karo
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: EKS cluster se connect karo
-        run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
-      - name: Namespace create karo
-        run: kubectl apply -f k8s/namespace/
-
-      - name: Test RDS Connection
-        env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
-        run: |
-          kubectl run psql-test \
-          --rm -i --restart=Never \
-          --image=postgres:16-alpine \
-          --env="PGPASSWORD=$DB_PASS" \
-          -- psql "host=$RDS_ENDPOINT port=5432 dbname=postgres user=$DB_USER sslmode=require" \
-          -c "SELECT version();"
-
-      - name: 5 databases RDS mein banao (agar exist nahi karte)
-        env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          RDS_ENDPOINT: ${{ secrets.RDS_ENDPOINT }}
-        run: |
-          kubectl delete job db-init -n ${{ env.NAMESPACE }} --ignore-not-found
-
-          kubectl create job db-init -n ${{ env.NAMESPACE }} \
-            --image=postgres:16-alpine \
-            -- /bin/sh -c '
-              set -e
-              export PGPASSWORD="'"$DB_PASS"'"
-              for db in user_db order_db payment_db product_db notification_db; do
-                exists=$(psql -h "'"$RDS_ENDPOINT"'" -U "'"$DB_USER"'" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='"'"'$db'"'"'")
-                if [ "$exists" != "1" ]; then
-                  echo "Creating $db"
-                  psql -h "'"$RDS_ENDPOINT"'" -U "'"$DB_USER"'" -d postgres -c "CREATE DATABASE $db"
-                else
-                  echo "$db already hai, skip"
-                fi
-              done
-            '
-          kubectl wait --for=condition=complete --timeout=120s job/db-init -n ${{ env.NAMESPACE }}
-          kubectl logs job/db-init -n ${{ env.NAMESPACE }}
+        run: echo "tag=${SHA_FULL:0:7}" >> "$GITHUB_OUTPUT"
 
   # ============================================================
   # JOB: SECRETS + CONFIGMAP + INGRESS
   # ============================================================
   apply-config:
-    needs: db-init
+    needs: check-ci-success
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -157,7 +102,9 @@ jobs:
   deploy:
     needs: [check-ci-success, apply-config]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
+      max-parallel: 3
       matrix:
         service:
           [
