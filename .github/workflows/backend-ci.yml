@@ -68,7 +68,7 @@ jobs:
 
       - name: Docker Image Scan Using Trivy
         uses: aquasecurity/trivy-action@v0.36.0
-        timeout-minutes: 8
+        timeout-minutes: 10
         with:
           image-ref: ${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ steps.tag.outputs.tag }}
           timeout: "5m"
