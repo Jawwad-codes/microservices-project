@@ -26,17 +26,6 @@ spec:
         app: notification-service
 
     spec:
-      initContainers:
-        - name: migrate
-          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/notification-service:latest
-          imagePullPolicy: IfNotPresent
-          command: ["npx", "prisma", "migrate", "deploy"]
-          envFrom:
-            - configMapRef:
-                name: app-config
-            - secretRef:
-                name: notification-secret
-
       containers:
         - name: notification-service
           image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/notification-service:latest

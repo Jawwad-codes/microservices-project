@@ -26,17 +26,6 @@ spec:
         app: product-service
 
     spec:
-      initContainers:
-        - name: migrate
-          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest
-          imagePullPolicy: IfNotPresent
-          command: ["npx", "prisma", "migrate", "deploy"]
-          envFrom:
-            - configMapRef:
-                name: app-config
-            - secretRef:
-                name: product-secret
-
       containers:
         - name: product-service
           image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/product-service:latest
@@ -44,12 +33,13 @@ spec:
 
           ports:
             - containerPort: 4002
-
+          
           envFrom:
             - configMapRef:
                 name: app-config
             - secretRef:
                 name: product-secret
+          
 
           resources:
             requests:
@@ -69,6 +59,6 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 4002
+              port: 4002  
             initialDelaySeconds: 20
             periodSeconds: 10

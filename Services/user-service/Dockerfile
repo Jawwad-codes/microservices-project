@@ -23,6 +23,7 @@ COPY --from=builder --chown=appuser:appuser /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appuser /app/src ./src
 COPY --from=builder --chown=appuser:appuser /app/package.json ./
 
+
 USER appuser
 
 EXPOSE 4001
