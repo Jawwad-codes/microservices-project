@@ -1,6 +1,6 @@
 # @format
 
-name: Backend CD
+name: Backend CDs
 
 on:
   workflow_run:
