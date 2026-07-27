@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { checkHealth } from "../api/client";
 
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || "http://af60e4f1c167b4fe8aaf8efcf213b3e4-e58a982f7ee4997f.elb.ap-south-1.amazonaws.com/";
+const GATEWAY = import.meta.env.VITE_GATEWAY_URL || "https://api.jawwad.online";
 
 const SERVICE_PORTS = {
   "api-gateway": 8080,
