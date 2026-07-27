@@ -18,8 +18,9 @@ spec:
             - secretRef:
                 name: payment-secret
 
-          command:
-            - sh
-            - -c
-            - |
-              npx prisma migrate deploy --schema=src/prisma/schema.prisma
+          command:           
+           - npx
+           - prisma
+           - migrate
+           - deploy
+           - --schema=src/prisma/schema.prisma

@@ -156,7 +156,7 @@ jobs:
   # JOB: DEPLOY
   # ============================================================
   deploy:
-    needs: [check-ci-success, apply-config]
+    needs: [check-ci-success, apply-config, "db-migrations"]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:

@@ -17,9 +17,10 @@ spec:
           envFrom:
             - secretRef:
                 name: order-secret
-
           command:
-            - sh
-            - -c
-            - |
-              npx prisma migrate deploy --schema=src/prisma/schema.prisma
+            - npx
+            - prisma
+            - migrate
+            - deploy
+            - --schema=src/prisma/schema.prisma
+   
