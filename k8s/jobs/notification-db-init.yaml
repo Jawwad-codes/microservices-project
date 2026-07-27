@@ -19,8 +19,7 @@ spec:
                 name: notification-secret
 
           command:
-            - npx
-            - prisma
-            - migrate
-            - deploy
-            - --schema=src/prisma/schema.prisma
+            - sh
+            - -c
+            - |
+              npx prisma migrate deploy --schema=src/prisma/schema.prisma
