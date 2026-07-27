@@ -13,7 +13,7 @@ RUN npx prisma generate --schema=./src/prisma/schema.prisma
 RUN npm prune --omit=dev
 
 FROM node:20-bookworm-slim
-
+RUN apt-get update -y && apt-get install -y openssl 
 WORKDIR /app
 
 # Non-root user banao

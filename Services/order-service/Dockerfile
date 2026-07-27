@@ -15,7 +15,7 @@ RUN npm prune --omit=dev
 FROM node:20-bookworm-slim
 
 WORKDIR /app
-
+RUN apt-get update -y && apt-get install -y openssl 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/package.json ./package.json
