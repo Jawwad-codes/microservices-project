@@ -17,8 +17,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: 0
+      maxUnavailable: 1
 
   template:
     metadata:
@@ -46,14 +46,14 @@ spec:
             httpGet:
               path: /health
               port: 4000
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds: 10
 
           readinessProbe:
             httpGet:
               path: /health
               port: 4000
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
             periodSeconds: 5
 
           envFrom:
