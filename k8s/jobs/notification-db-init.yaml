@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: notification-db-init
+  namespace: microservices
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: prisma-migrate
+          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/notification-service:latest
+          imagePullPolicy: Always
+
+          envFrom:
+            - secretRef:
+                name: notification-secret
+
+          command:
+            - sh
+            - -c
+            - |
+              npx prisma migrate deploy --schema=src/prisma/schema.prisma

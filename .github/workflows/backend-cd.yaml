@@ -97,6 +97,60 @@ jobs:
 
       - name: Ingress apply karo
         run: kubectl apply -f k8s/ingress/ -n ${{ env.NAMESPACE }}
+  db-migrations:
+    needs: [check-ci-success, apply-config]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      matrix:
+        include:
+          - job: user-db-init
+          - job: product-db-init
+          - job: order-db-init
+          - job: payment-db-init
+          - job: notification-db-init
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS Login
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Connect to EKS
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ env.EKS_CLUSTER_NAME }} \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Delete old Job (if exists)
+        run: |
+          kubectl delete job ${{ matrix.job }} \
+            -n ${{ env.NAMESPACE }} \
+            --ignore-not-found=true
+
+      - name: Apply migration Job
+        run: |
+          kubectl apply \
+            -f k8s/jobs/${{ matrix.job }}.yaml
+
+      - name: Wait for migration
+        run: |
+          kubectl wait \
+            --for=condition=complete \
+            job/${{ matrix.job }} \
+            -n ${{ env.NAMESPACE }} \
+            --timeout=300s
+
+      - name: Show migration logs
+        run: |
+          kubectl logs \
+            job/${{ matrix.job }} \
+            -n ${{ env.NAMESPACE }}
 
   # ============================================================
   # JOB: DEPLOY

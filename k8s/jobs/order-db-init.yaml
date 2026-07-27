@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: order-db-init
+  namespace: microservices
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: prisma-migrate
+          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/order-service:latest
+          imagePullPolicy: Always
+
+          envFrom:
+            - secretRef:
+                name: order-secret
+
+          command:
+            - sh
+            - -c
+            - |
+              npx prisma migrate deploy --schema=src/prisma/schema.prisma

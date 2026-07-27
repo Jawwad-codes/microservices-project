@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: payment-db-init
+  namespace: microservices
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: prisma-migrate
+          image: 792705600668.dkr.ecr.ap-south-1.amazonaws.com/payment-service:latest
+          imagePullPolicy: Always
+
+          envFrom:
+            - secretRef:
+                name: payment-secret
+
+          command:
+            - sh
+            - -c
+            - |
+              npx prisma migrate deploy --schema=src/prisma/schema.prisma
