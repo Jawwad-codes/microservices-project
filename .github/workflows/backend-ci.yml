@@ -4,7 +4,7 @@ name: Backend CI
 
 on:
   push:
-    branches: [development]
+    branches: [main]
     paths:
       - "Services/**"
       - ".github/workflows/backend-ci.yml"
@@ -35,11 +35,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      # - name: Install, Audit, & Test
-      #   working-directory: ./Services/${{ matrix.service }}
-      #   run: |
-      #     npm test
 
       - name: AWS Login
         uses: aws-actions/configure-aws-credentials@v4

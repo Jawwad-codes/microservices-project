@@ -1,0 +1,132 @@
+digraph G {
+  rankdir = "RL";
+  node [shape = rect, fontname = "sans-serif"];
+  subgraph "cluster_module.alb_sgs" {
+    label = "module.alb_sgs"
+    fontname = "sans-serif"
+    "module.alb_sgs.aws_security_group.this" [label="aws_security_group.this"];
+  }
+  subgraph "cluster_module.cloudfront" {
+    label = "module.cloudfront"
+    fontname = "sans-serif"
+    "module.cloudfront.data.aws_iam_policy_document.this" [label="data.aws_iam_policy_document.this"];
+    "module.cloudfront.aws_cloudfront_distribution.this" [label="aws_cloudfront_distribution.this"];
+    "module.cloudfront.aws_cloudfront_origin_access_control.this" [label="aws_cloudfront_origin_access_control.this"];
+    "module.cloudfront.aws_s3_bucket_policy.this" [label="aws_s3_bucket_policy.this"];
+  }
+  subgraph "cluster_module.ecr" {
+    label = "module.ecr"
+    fontname = "sans-serif"
+    "module.ecr.aws_ecr_lifecycle_policy.this" [label="aws_ecr_lifecycle_policy.this"];
+    "module.ecr.aws_ecr_repository.this" [label="aws_ecr_repository.this"];
+  }
+  subgraph "cluster_module.eks" {
+    label = "module.eks"
+    fontname = "sans-serif"
+    "module.eks.aws_eks_addon.coredns" [label="aws_eks_addon.coredns"];
+    "module.eks.aws_eks_addon.kube_proxy" [label="aws_eks_addon.kube_proxy"];
+    "module.eks.aws_eks_addon.vpc_cni" [label="aws_eks_addon.vpc_cni"];
+    "module.eks.aws_eks_cluster.this" [label="aws_eks_cluster.this"];
+    "module.eks.aws_eks_node_group.this" [label="aws_eks_node_group.this"];
+  }
+  subgraph "cluster_module.eks_cluster_sg" {
+    label = "module.eks_cluster_sg"
+    fontname = "sans-serif"
+    "module.eks_cluster_sg.aws_security_group.this" [label="aws_security_group.this"];
+  }
+  subgraph "cluster_module.eks_node_sg" {
+    label = "module.eks_node_sg"
+    fontname = "sans-serif"
+    "module.eks_node_sg.aws_security_group.this" [label="aws_security_group.this"];
+  }
+  subgraph "cluster_module.iam" {
+    label = "module.iam"
+    fontname = "sans-serif"
+    "module.iam.aws_iam_role.eks_cluster" [label="aws_iam_role.eks_cluster"];
+    "module.iam.aws_iam_role.eks_node" [label="aws_iam_role.eks_node"];
+    "module.iam.aws_iam_role_policy_attachment.cluster_policy" [label="aws_iam_role_policy_attachment.cluster_policy"];
+    "module.iam.aws_iam_role_policy_attachment.cni" [label="aws_iam_role_policy_attachment.cni"];
+    "module.iam.aws_iam_role_policy_attachment.ecr" [label="aws_iam_role_policy_attachment.ecr"];
+    "module.iam.aws_iam_role_policy_attachment.ssm" [label="aws_iam_role_policy_attachment.ssm"];
+    "module.iam.aws_iam_role_policy_attachment.worker_node" [label="aws_iam_role_policy_attachment.worker_node"];
+  }
+  subgraph "cluster_module.rds" {
+    label = "module.rds"
+    fontname = "sans-serif"
+    "module.rds.aws_db_instance.this" [label="aws_db_instance.this"];
+    "module.rds.aws_db_subnet_group.this" [label="aws_db_subnet_group.this"];
+  }
+  subgraph "cluster_module.rds_sg" {
+    label = "module.rds_sg"
+    fontname = "sans-serif"
+    "module.rds_sg.aws_security_group.this" [label="aws_security_group.this"];
+  }
+  subgraph "cluster_module.s3" {
+    label = "module.s3"
+    fontname = "sans-serif"
+    "module.s3.aws_s3_bucket.frontend" [label="aws_s3_bucket.frontend"];
+    "module.s3.aws_s3_bucket_public_access_block.frontend" [label="aws_s3_bucket_public_access_block.frontend"];
+    "module.s3.aws_s3_bucket_server_side_encryption_configuration.frontend" [label="aws_s3_bucket_server_side_encryption_configuration.frontend"];
+    "module.s3.aws_s3_bucket_versioning.frontend" [label="aws_s3_bucket_versioning.frontend"];
+  }
+  subgraph "cluster_module.vpc" {
+    label = "module.vpc"
+    fontname = "sans-serif"
+    "module.vpc.aws_eip.nat" [label="aws_eip.nat"];
+    "module.vpc.aws_internet_gateway.this" [label="aws_internet_gateway.this"];
+    "module.vpc.aws_nat_gateway.this" [label="aws_nat_gateway.this"];
+    "module.vpc.aws_route.private_internet_access" [label="aws_route.private_internet_access"];
+    "module.vpc.aws_route.public_internet_access" [label="aws_route.public_internet_access"];
+    "module.vpc.aws_route_table.private" [label="aws_route_table.private"];
+    "module.vpc.aws_route_table.public" [label="aws_route_table.public"];
+    "module.vpc.aws_route_table_association.private" [label="aws_route_table_association.private"];
+    "module.vpc.aws_route_table_association.public" [label="aws_route_table_association.public"];
+    "module.vpc.aws_subnet.private" [label="aws_subnet.private"];
+    "module.vpc.aws_subnet.public" [label="aws_subnet.public"];
+    "module.vpc.aws_vpc.this" [label="aws_vpc.this"];
+  }
+  "module.alb_sgs.aws_security_group.this" -> "module.vpc.aws_vpc.this";
+  "module.cloudfront.data.aws_iam_policy_document.this" -> "module.cloudfront.aws_cloudfront_distribution.this";
+  "module.cloudfront.aws_cloudfront_distribution.this" -> "module.cloudfront.aws_cloudfront_origin_access_control.this";
+  "module.cloudfront.aws_cloudfront_origin_access_control.this" -> "module.s3.aws_s3_bucket.frontend";
+  "module.cloudfront.aws_s3_bucket_policy.this" -> "module.cloudfront.data.aws_iam_policy_document.this";
+  "module.ecr.aws_ecr_lifecycle_policy.this" -> "module.ecr.aws_ecr_repository.this";
+  "module.eks.aws_eks_addon.coredns" -> "module.eks.aws_eks_node_group.this";
+  "module.eks.aws_eks_addon.kube_proxy" -> "module.eks.aws_eks_node_group.this";
+  "module.eks.aws_eks_addon.vpc_cni" -> "module.eks.aws_eks_node_group.this";
+  "module.eks.aws_eks_cluster.this" -> "module.eks_node_sg.aws_security_group.this";
+  "module.eks.aws_eks_cluster.this" -> "module.iam.aws_iam_role.eks_cluster";
+  "module.eks.aws_eks_cluster.this" -> "module.vpc.aws_subnet.private";
+  "module.eks.aws_eks_node_group.this" -> "module.eks.aws_eks_cluster.this";
+  "module.eks.aws_eks_node_group.this" -> "module.iam.aws_iam_role.eks_node";
+  "module.eks_cluster_sg.aws_security_group.this" -> "module.vpc.aws_vpc.this";
+  "module.eks_node_sg.aws_security_group.this" -> "module.vpc.aws_vpc.this";
+  "module.iam.aws_iam_role_policy_attachment.cluster_policy" -> "module.iam.aws_iam_role.eks_cluster";
+  "module.iam.aws_iam_role_policy_attachment.cni" -> "module.iam.aws_iam_role.eks_node";
+  "module.iam.aws_iam_role_policy_attachment.ecr" -> "module.iam.aws_iam_role.eks_node";
+  "module.iam.aws_iam_role_policy_attachment.ssm" -> "module.iam.aws_iam_role.eks_node";
+  "module.iam.aws_iam_role_policy_attachment.worker_node" -> "module.iam.aws_iam_role.eks_node";
+  "module.rds.aws_db_instance.this" -> "module.rds.aws_db_subnet_group.this";
+  "module.rds.aws_db_instance.this" -> "module.rds_sg.aws_security_group.this";
+  "module.rds.aws_db_subnet_group.this" -> "module.vpc.aws_subnet.private";
+  "module.rds_sg.aws_security_group.this" -> "module.vpc.aws_vpc.this";
+  "module.s3.aws_s3_bucket_public_access_block.frontend" -> "module.s3.aws_s3_bucket.frontend";
+  "module.s3.aws_s3_bucket_server_side_encryption_configuration.frontend" -> "module.s3.aws_s3_bucket.frontend";
+  "module.s3.aws_s3_bucket_versioning.frontend" -> "module.s3.aws_s3_bucket.frontend";
+  "module.vpc.aws_internet_gateway.this" -> "module.vpc.aws_vpc.this";
+  "module.vpc.aws_nat_gateway.this" -> "module.vpc.aws_eip.nat";
+  "module.vpc.aws_nat_gateway.this" -> "module.vpc.aws_internet_gateway.this";
+  "module.vpc.aws_nat_gateway.this" -> "module.vpc.aws_subnet.public";
+  "module.vpc.aws_route.private_internet_access" -> "module.vpc.aws_nat_gateway.this";
+  "module.vpc.aws_route.private_internet_access" -> "module.vpc.aws_route_table.private";
+  "module.vpc.aws_route.public_internet_access" -> "module.vpc.aws_internet_gateway.this";
+  "module.vpc.aws_route.public_internet_access" -> "module.vpc.aws_route_table.public";
+  "module.vpc.aws_route_table.private" -> "module.vpc.aws_vpc.this";
+  "module.vpc.aws_route_table.public" -> "module.vpc.aws_vpc.this";
+  "module.vpc.aws_route_table_association.private" -> "module.vpc.aws_route_table.private";
+  "module.vpc.aws_route_table_association.private" -> "module.vpc.aws_subnet.private";
+  "module.vpc.aws_route_table_association.public" -> "module.vpc.aws_route_table.public";
+  "module.vpc.aws_route_table_association.public" -> "module.vpc.aws_subnet.public";
+  "module.vpc.aws_subnet.private" -> "module.vpc.aws_vpc.this";
+  "module.vpc.aws_subnet.public" -> "module.vpc.aws_vpc.this";
+}

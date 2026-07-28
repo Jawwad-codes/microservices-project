@@ -1,0 +1,566 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400pt" height="1410pt" viewBox="0.00 0.00 1400 1409.99">
+<g id="graph0" class="graph" transform="translate(71.4344482421875,1448.9027404785156) scale(1)" data-name="">
+
+<polygon fill="white" stroke="none" points="-4,4 -4,-1405.99 1396,-1405.99 1396,4 -4,4"/>
+<g id="clust10" class="cluster" data-name="cluster_module.s3">
+
+<polygon fill="none" stroke="black" points="8,-1208.99 8,-1393.99 584.97,-1393.99 584.97,-1208.99 8,-1208.99"/>
+<text text-anchor="middle" x="296.49" y="-1377.39" font-family="sans-serif" font-size="14.00">module.s3</text>
+</g>
+<g id="clust9" class="cluster" data-name="cluster_module.rds_sg">
+
+<polygon fill="none" stroke="black" points="672.61,-1038.99 672.61,-1115.99 841.09,-1115.99 841.09,-1038.99 672.61,-1038.99"/>
+<text text-anchor="middle" x="756.85" y="-1099.39" font-family="sans-serif" font-size="14.00">module.rds_sg</text>
+</g>
+<g id="clust11" class="cluster" data-name="cluster_module.vpc">
+
+<polygon fill="none" stroke="black" points="39.88,-598.99 39.88,-945.99 1159.19,-945.99 1159.19,-598.99 39.88,-598.99"/>
+<text text-anchor="middle" x="599.53" y="-929.39" font-family="sans-serif" font-size="14.00">module.vpc</text>
+</g>
+<g id="clust8" class="cluster" data-name="cluster_module.rds">
+
+<polygon fill="none" stroke="black" points="665.99,-953.99 665.99,-1030.99 1122.66,-1030.99 1122.66,-953.99 665.99,-953.99"/>
+<text text-anchor="middle" x="894.33" y="-1014.39" font-family="sans-serif" font-size="14.00">module.rds</text>
+</g>
+<g id="clust1" class="cluster" data-name="cluster_module.alb_sgs">
+
+<polygon fill="none" stroke="black" points="306.48,-513.99 306.48,-590.99 474.96,-590.99 474.96,-513.99 306.48,-513.99"/>
+<text text-anchor="middle" x="390.72" y="-574.39" font-family="sans-serif" font-size="14.00">module.alb_sgs</text>
+</g>
+<g id="clust2" class="cluster" data-name="cluster_module.cloudfront">
+
+<polygon fill="none" stroke="black" points="254.39,-1123.99 254.39,-1200.99 1376.25,-1200.99 1376.25,-1123.99 254.39,-1123.99"/>
+<text text-anchor="middle" x="815.32" y="-1184.39" font-family="sans-serif" font-size="14.00">module.cloudfront</text>
+</g>
+<g id="clust3" class="cluster" data-name="cluster_module.ecr">
+
+<polygon fill="none" stroke="black" points="964.3,-1262.99 964.3,-1339.99 1384,-1339.99 1384,-1262.99 964.3,-1262.99"/>
+<text text-anchor="middle" x="1174.15" y="-1323.39" font-family="sans-serif" font-size="14.00">module.ecr</text>
+</g>
+<g id="clust4" class="cluster" data-name="cluster_module.eks">
+
+<polygon fill="none" stroke="black" points="683.11,-343.99 683.11,-528.99 1380.13,-528.99 1380.13,-343.99 683.11,-343.99"/>
+<text text-anchor="middle" x="1031.62" y="-512.39" font-family="sans-serif" font-size="14.00">module.eks</text>
+</g>
+<g id="clust5" class="cluster" data-name="cluster_module.eks_cluster_sg">
+
+<polygon fill="none" stroke="black" points="306.48,-428.99 306.48,-505.99 474.96,-505.99 474.96,-428.99 306.48,-428.99"/>
+<text text-anchor="middle" x="390.72" y="-489.39" font-family="sans-serif" font-size="14.00">module.eks_cluster_sg</text>
+</g>
+<g id="clust6" class="cluster" data-name="cluster_module.eks_node_sg">
+
+<polygon fill="none" stroke="black" points="306.48,-343.99 306.48,-420.99 474.96,-420.99 474.96,-343.99 306.48,-343.99"/>
+<text text-anchor="middle" x="390.72" y="-404.39" font-family="sans-serif" font-size="14.00">module.eks_node_sg</text>
+</g>
+<g id="clust7" class="cluster" data-name="cluster_module.iam">
+
+<polygon fill="none" stroke="black" points="302.21,-42.99 302.21,-335.99 908.72,-335.99 908.72,-42.99 302.21,-42.99"/>
+<text text-anchor="middle" x="605.47" y="-319.39" font-family="sans-serif" font-size="14.00">module.iam</text>
+</g>
+<!-- module.alb_sgs.aws_security_group.this -->
+<g id="node1" class="node" pointer-events="visible" data-name="module.alb_sgs.aws_security_group.this">
+
+<polygon fill="none" stroke="black" points="467.2,-557.99 314.24,-557.99 314.24,-521.99 467.2,-521.99 467.2,-557.99"/>
+<text text-anchor="middle" x="390.72" y="-535.79" font-family="sans-serif" font-size="14.00">aws_security_group.this</text>
+</g>
+<!-- module.vpc.aws_vpc.this -->
+<g id="node40" class="node" pointer-events="visible" data-name="module.vpc.aws_vpc.this">
+
+<polygon fill="none" stroke="black" points="136.45,-696.99 48.02,-696.99 48.02,-660.99 136.45,-660.99 136.45,-696.99"/>
+<text text-anchor="middle" x="92.23" y="-674.79" font-family="sans-serif" font-size="14.00">aws_vpc.this</text>
+</g>
+<!-- module.alb_sgs.aws_security_group.this&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge1" class="edge" data-name="module.alb_sgs.aws_security_group.this-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M313.92,-555.95C279.43,-564.84 238.75,-577.67 204.47,-594.99 173.66,-610.55 142.65,-634.85 121.23,-653.31"/>
+<polygon fill="black" stroke="black" points="119.01,-650.61 113.8,-659.83 123.63,-655.87 119.01,-650.61"/>
+</g>
+<!-- module.cloudfront.data.aws_iam_policy_document.this -->
+<g id="node2" class="node" pointer-events="visible" data-name="module.cloudfront.data.aws_iam_policy_document.this">
+
+<polygon fill="none" stroke="black" points="1156.99,-1167.99 936.97,-1167.99 936.97,-1131.99 1156.99,-1131.99 1156.99,-1167.99"/>
+<text text-anchor="middle" x="1046.98" y="-1145.79" font-family="sans-serif" font-size="14.00">data.aws_iam_policy_document.this</text>
+</g>
+<!-- module.cloudfront.aws_cloudfront_distribution.this -->
+<g id="node3" class="node" pointer-events="visible" data-name="module.cloudfront.aws_cloudfront_distribution.this">
+
+<polygon fill="none" stroke="black" points="856.22,-1167.99 657.47,-1167.99 657.47,-1131.99 856.22,-1131.99 856.22,-1167.99"/>
+<text text-anchor="middle" x="756.85" y="-1145.79" font-family="sans-serif" font-size="14.00">aws_cloudfront_distribution.this</text>
+</g>
+<!-- module.cloudfront.data.aws_iam_policy_document.this&#45;&gt;module.cloudfront.aws_cloudfront_distribution.this -->
+<g id="edge2" class="edge" data-name="module.cloudfront.data.aws_iam_policy_document.this-&gt;module.cloudfront.aws_cloudfront_distribution.this">
+
+<path fill="none" stroke="black" d="M936.64,-1149.99C914.17,-1149.99 890.5,-1149.99 868,-1149.99"/>
+<polygon fill="black" stroke="black" points="868.22,-1146.49 858.22,-1149.99 868.22,-1153.49 868.22,-1146.49"/>
+</g>
+<!-- module.cloudfront.aws_cloudfront_origin_access_control.this -->
+<g id="node4" class="node" pointer-events="visible" data-name="module.cloudfront.aws_cloudfront_origin_access_control.this">
+
+<polygon fill="none" stroke="black" points="518.89,-1167.99 262.55,-1167.99 262.55,-1131.99 518.89,-1131.99 518.89,-1167.99"/>
+<text text-anchor="middle" x="390.72" y="-1145.79" font-family="sans-serif" font-size="14.00">aws_cloudfront_origin_access_control.this</text>
+</g>
+<!-- module.cloudfront.aws_cloudfront_distribution.this&#45;&gt;module.cloudfront.aws_cloudfront_origin_access_control.this -->
+<g id="edge3" class="edge" data-name="module.cloudfront.aws_cloudfront_distribution.this-&gt;module.cloudfront.aws_cloudfront_origin_access_control.this">
+
+<path fill="none" stroke="black" d="M657.31,-1149.99C618.25,-1149.99 572.65,-1149.99 530.37,-1149.99"/>
+<polygon fill="black" stroke="black" points="530.63,-1146.49 520.63,-1149.99 530.63,-1153.49 530.63,-1146.49"/>
+</g>
+<!-- module.s3.aws_s3_bucket.frontend -->
+<g id="node25" class="node" pointer-events="visible" data-name="module.s3.aws_s3_bucket.frontend">
+
+<polygon fill="none" stroke="black" points="168.7,-1279.99 15.77,-1279.99 15.77,-1243.99 168.7,-1243.99 168.7,-1279.99"/>
+<text text-anchor="middle" x="92.23" y="-1257.79" font-family="sans-serif" font-size="14.00">aws_s3_bucket.frontend</text>
+</g>
+<!-- module.cloudfront.aws_cloudfront_origin_access_control.this&#45;&gt;module.s3.aws_s3_bucket.frontend -->
+<g id="edge4" class="edge" data-name="module.cloudfront.aws_cloudfront_origin_access_control.this-&gt;module.s3.aws_s3_bucket.frontend">
+
+<path fill="none" stroke="black" d="M316.07,-1168.48C281.66,-1177.98 240.44,-1190.58 204.47,-1204.99 180.86,-1214.45 155.55,-1227.2 135.05,-1238.23"/>
+<polygon fill="black" stroke="black" points="133.54,-1235.07 126.43,-1242.94 136.89,-1241.22 133.54,-1235.07"/>
+</g>
+<!-- module.cloudfront.aws_s3_bucket_policy.this -->
+<g id="node5" class="node" pointer-events="visible" data-name="module.cloudfront.aws_s3_bucket_policy.this">
+
+<polygon fill="none" stroke="black" points="1368.38,-1167.99 1200.86,-1167.99 1200.86,-1131.99 1368.38,-1131.99 1368.38,-1167.99"/>
+<text text-anchor="middle" x="1284.62" y="-1145.79" font-family="sans-serif" font-size="14.00">aws_s3_bucket_policy.this</text>
+</g>
+<!-- module.cloudfront.aws_s3_bucket_policy.this&#45;&gt;module.cloudfront.data.aws_iam_policy_document.this -->
+<g id="edge5" class="edge" data-name="module.cloudfront.aws_s3_bucket_policy.this-&gt;module.cloudfront.data.aws_iam_policy_document.this">
+
+<path fill="none" stroke="black" d="M1200.54,-1149.99C1190.12,-1149.99 1179.29,-1149.99 1168.44,-1149.99"/>
+<polygon fill="black" stroke="black" points="1168.65,-1146.49 1158.65,-1149.99 1168.65,-1153.49 1168.65,-1146.49"/>
+</g>
+<!-- module.ecr.aws_ecr_lifecycle_policy.this -->
+<g id="node6" class="node" pointer-events="visible" data-name="module.ecr.aws_ecr_lifecycle_policy.this">
+
+<polygon fill="none" stroke="black" points="1375.89,-1306.99 1193.35,-1306.99 1193.35,-1270.99 1375.89,-1270.99 1375.89,-1306.99"/>
+<text text-anchor="middle" x="1284.62" y="-1284.79" font-family="sans-serif" font-size="14.00">aws_ecr_lifecycle_policy.this</text>
+</g>
+<!-- module.ecr.aws_ecr_repository.this -->
+<g id="node7" class="node" pointer-events="visible" data-name="module.ecr.aws_ecr_repository.this">
+
+<polygon fill="none" stroke="black" points="1121.83,-1306.99 972.12,-1306.99 972.12,-1270.99 1121.83,-1270.99 1121.83,-1306.99"/>
+<text text-anchor="middle" x="1046.98" y="-1284.79" font-family="sans-serif" font-size="14.00">aws_ecr_repository.this</text>
+</g>
+<!-- module.ecr.aws_ecr_lifecycle_policy.this&#45;&gt;module.ecr.aws_ecr_repository.this -->
+<g id="edge6" class="edge" data-name="module.ecr.aws_ecr_lifecycle_policy.this-&gt;module.ecr.aws_ecr_repository.this">
+
+<path fill="none" stroke="black" d="M1192.85,-1288.99C1173.43,-1288.99 1152.98,-1288.99 1133.76,-1288.99"/>
+<polygon fill="black" stroke="black" points="1133.8,-1285.49 1123.8,-1288.99 1133.8,-1292.49 1133.8,-1285.49"/>
+</g>
+<!-- module.eks.aws_eks_addon.coredns -->
+<g id="node8" class="node" pointer-events="visible" data-name="module.eks.aws_eks_addon.coredns">
+
+<polygon fill="none" stroke="black" points="1360.31,-441.99 1208.93,-441.99 1208.93,-405.99 1360.31,-405.99 1360.31,-441.99"/>
+<text text-anchor="middle" x="1284.62" y="-419.79" font-family="sans-serif" font-size="14.00">aws_eks_addon.coredns</text>
+</g>
+<!-- module.eks.aws_eks_node_group.this -->
+<g id="node12" class="node" pointer-events="visible" data-name="module.eks.aws_eks_node_group.this">
+
+<polygon fill="none" stroke="black" points="1127.52,-387.99 966.44,-387.99 966.44,-351.99 1127.52,-351.99 1127.52,-387.99"/>
+<text text-anchor="middle" x="1046.98" y="-365.79" font-family="sans-serif" font-size="14.00">aws_eks_node_group.this</text>
+</g>
+<!-- module.eks.aws_eks_addon.coredns&#45;&gt;module.eks.aws_eks_node_group.this -->
+<g id="edge7" class="edge" data-name="module.eks.aws_eks_addon.coredns-&gt;module.eks.aws_eks_node_group.this">
+
+<path fill="none" stroke="black" d="M1208.74,-406.83C1186.62,-401.76 1162.16,-396.16 1139.13,-390.88"/>
+<polygon fill="black" stroke="black" points="1139.96,-387.48 1129.44,-388.66 1138.4,-394.3 1139.96,-387.48"/>
+</g>
+<!-- module.eks.aws_eks_addon.kube_proxy -->
+<g id="node9" class="node" pointer-events="visible" data-name="module.eks.aws_eks_addon.kube_proxy">
+
+<polygon fill="none" stroke="black" points="1372.14,-387.99 1197.09,-387.99 1197.09,-351.99 1372.14,-351.99 1372.14,-387.99"/>
+<text text-anchor="middle" x="1284.62" y="-365.79" font-family="sans-serif" font-size="14.00">aws_eks_addon.kube_proxy</text>
+</g>
+<!-- module.eks.aws_eks_addon.kube_proxy&#45;&gt;module.eks.aws_eks_node_group.this -->
+<g id="edge8" class="edge" data-name="module.eks.aws_eks_addon.kube_proxy-&gt;module.eks.aws_eks_node_group.this">
+
+<path fill="none" stroke="black" d="M1196.88,-369.99C1178.1,-369.99 1158.18,-369.99 1139.24,-369.99"/>
+<polygon fill="black" stroke="black" points="1139.41,-366.49 1129.41,-369.99 1139.41,-373.49 1139.41,-366.49"/>
+</g>
+<!-- module.eks.aws_eks_addon.vpc_cni -->
+<g id="node10" class="node" pointer-events="visible" data-name="module.eks.aws_eks_addon.vpc_cni">
+
+<polygon fill="none" stroke="black" points="1361.08,-495.99 1208.15,-495.99 1208.15,-459.99 1361.08,-459.99 1361.08,-495.99"/>
+<text text-anchor="middle" x="1284.62" y="-473.79" font-family="sans-serif" font-size="14.00">aws_eks_addon.vpc_cni</text>
+</g>
+<!-- module.eks.aws_eks_addon.vpc_cni&#45;&gt;module.eks.aws_eks_node_group.this -->
+<g id="edge9" class="edge" data-name="module.eks.aws_eks_addon.vpc_cni-&gt;module.eks.aws_eks_node_group.this">
+
+<path fill="none" stroke="black" d="M1215.92,-459.54C1208.18,-456.91 1200.48,-454.05 1193.23,-450.99 1155.4,-435.02 1114.77,-411.79 1086.13,-394.3"/>
+<polygon fill="black" stroke="black" points="1088.16,-391.44 1077.81,-389.17 1084.48,-397.4 1088.16,-391.44"/>
+</g>
+<!-- module.eks.aws_eks_cluster.this -->
+<g id="node11" class="node" pointer-events="visible" data-name="module.eks.aws_eks_cluster.this">
+
+<polygon fill="none" stroke="black" points="822.83,-387.99 690.87,-387.99 690.87,-351.99 822.83,-351.99 822.83,-387.99"/>
+<text text-anchor="middle" x="756.85" y="-365.79" font-family="sans-serif" font-size="14.00">aws_eks_cluster.this</text>
+</g>
+<!-- module.eks_node_sg.aws_security_group.this -->
+<g id="node14" class="node" pointer-events="visible" data-name="module.eks_node_sg.aws_security_group.this">
+
+<polygon fill="none" stroke="black" points="467.2,-387.99 314.24,-387.99 314.24,-351.99 467.2,-351.99 467.2,-387.99"/>
+<text text-anchor="middle" x="390.72" y="-365.79" font-family="sans-serif" font-size="14.00">aws_security_group.this</text>
+</g>
+<!-- module.eks.aws_eks_cluster.this&#45;&gt;module.eks_node_sg.aws_security_group.this -->
+<g id="edge10" class="edge" data-name="module.eks.aws_eks_cluster.this-&gt;module.eks_node_sg.aws_security_group.this">
+
+<path fill="none" stroke="black" d="M690.75,-369.99C631.7,-369.99 544.18,-369.99 479.06,-369.99"/>
+<polygon fill="black" stroke="black" points="479.1,-366.49 469.1,-369.99 479.1,-373.49 479.1,-366.49"/>
+</g>
+<!-- module.iam.aws_iam_role.eks_cluster -->
+<g id="node15" class="node" pointer-events="visible" data-name="module.iam.aws_iam_role.eks_cluster">
+
+<polygon fill="none" stroke="black" points="471.23,-302.99 310.21,-302.99 310.21,-266.99 471.23,-266.99 471.23,-302.99"/>
+<text text-anchor="middle" x="390.72" y="-280.79" font-family="sans-serif" font-size="14.00">aws_iam_role.eks_cluster</text>
+</g>
+<!-- module.eks.aws_eks_cluster.this&#45;&gt;module.iam.aws_iam_role.eks_cluster -->
+<g id="edge11" class="edge" data-name="module.eks.aws_eks_cluster.this-&gt;module.iam.aws_iam_role.eks_cluster">
+
+<path fill="none" stroke="black" d="M690.66,-356.83C666.25,-351.76 638.3,-345.8 612.97,-339.99 566.76,-329.4 515.34,-316.68 473.72,-306.14"/>
+<polygon fill="black" stroke="black" points="474.83,-302.81 464.27,-303.74 473.1,-309.59 474.83,-302.81"/>
+</g>
+<!-- module.vpc.aws_subnet.private -->
+<g id="node38" class="node" pointer-events="visible" data-name="module.vpc.aws_subnet.private">
+
+<polygon fill="none" stroke="black" points="452.41,-642.99 329.03,-642.99 329.03,-606.99 452.41,-606.99 452.41,-642.99"/>
+<text text-anchor="middle" x="390.72" y="-620.79" font-family="sans-serif" font-size="14.00">aws_subnet.private</text>
+</g>
+<!-- module.eks.aws_eks_cluster.this&#45;&gt;module.vpc.aws_subnet.private -->
+<g id="edge12" class="edge" data-name="module.eks.aws_eks_cluster.this-&gt;module.vpc.aws_subnet.private">
+
+<path fill="none" stroke="black" d="M747.91,-388.37C727.83,-432.4 670.5,-544 584.97,-594.99 548.74,-616.59 502.16,-624.29 463.81,-626.5"/>
+<polygon fill="black" stroke="black" points="464.06,-622.98 454.23,-626.93 464.37,-629.98 464.06,-622.98"/>
+</g>
+<!-- module.eks.aws_eks_node_group.this&#45;&gt;module.eks.aws_eks_cluster.this -->
+<g id="edge13" class="edge" data-name="module.eks.aws_eks_node_group.this-&gt;module.eks.aws_eks_cluster.this">
+
+<path fill="none" stroke="black" d="M966.1,-369.99C925.09,-369.99 875.35,-369.99 834.76,-369.99"/>
+<polygon fill="black" stroke="black" points="834.82,-366.49 824.82,-369.99 834.82,-373.49 834.82,-366.49"/>
+</g>
+<!-- module.iam.aws_iam_role.eks_node -->
+<g id="node16" class="node" pointer-events="visible" data-name="module.iam.aws_iam_role.eks_node">
+
+<polygon fill="none" stroke="black" points="466.13,-140.99 315.31,-140.99 315.31,-104.99 466.13,-104.99 466.13,-140.99"/>
+<text text-anchor="middle" x="390.72" y="-118.79" font-family="sans-serif" font-size="14.00">aws_iam_role.eks_node</text>
+</g>
+<!-- module.eks.aws_eks_node_group.this&#45;&gt;module.iam.aws_iam_role.eks_node -->
+<g id="edge14" class="edge" data-name="module.eks.aws_eks_node_group.this-&gt;module.iam.aws_iam_role.eks_node">
+
+<path fill="none" stroke="black" d="M1044.93,-351.5C1040.51,-293.53 1018.18,-114.84 908.72,-41.99 756.91,59.05 525.32,-48.16 432.39,-99.16"/>
+<polygon fill="black" stroke="black" points="430.89,-95.99 423.85,-103.91 434.29,-102.11 430.89,-95.99"/>
+</g>
+<!-- module.eks_cluster_sg.aws_security_group.this -->
+<g id="node13" class="node" pointer-events="visible" data-name="module.eks_cluster_sg.aws_security_group.this">
+
+<polygon fill="none" stroke="black" points="467.2,-472.99 314.24,-472.99 314.24,-436.99 467.2,-436.99 467.2,-472.99"/>
+<text text-anchor="middle" x="390.72" y="-450.79" font-family="sans-serif" font-size="14.00">aws_security_group.this</text>
+</g>
+<!-- module.eks_cluster_sg.aws_security_group.this&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge15" class="edge" data-name="module.eks_cluster_sg.aws_security_group.this-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M313.97,-465.14C278.09,-472.86 236.25,-486.39 204.47,-509.99 154.93,-546.77 121,-612.65 104.58,-650.37"/>
+<polygon fill="black" stroke="black" points="101.49,-648.7 100.83,-659.27 107.94,-651.42 101.49,-648.7"/>
+</g>
+<!-- module.eks_node_sg.aws_security_group.this&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge16" class="edge" data-name="module.eks_node_sg.aws_security_group.this-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M313.97,-377.51C277.24,-384.59 234.65,-398.35 204.47,-424.99 135.83,-485.59 107.79,-596.34 97.9,-649.28"/>
+<polygon fill="black" stroke="black" points="94.47,-648.6 96.17,-659.05 101.36,-649.81 94.47,-648.6"/>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.cluster_policy -->
+<g id="node17" class="node" pointer-events="visible" data-name="module.iam.aws_iam_role_policy_attachment.cluster_policy">
+
+<polygon fill="none" stroke="black" points="900.6,-302.99 613.1,-302.99 613.1,-266.99 900.6,-266.99 900.6,-302.99"/>
+<text text-anchor="middle" x="756.85" y="-280.79" font-family="sans-serif" font-size="14.00">aws_iam_role_policy_attachment.cluster_policy</text>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.cluster_policy&#45;&gt;module.iam.aws_iam_role.eks_cluster -->
+<g id="edge17" class="edge" data-name="module.iam.aws_iam_role_policy_attachment.cluster_policy-&gt;module.iam.aws_iam_role.eks_cluster">
+
+<path fill="none" stroke="black" d="M612.72,-284.99C569.04,-284.99 522.22,-284.99 482.98,-284.99"/>
+<polygon fill="black" stroke="black" points="483.1,-281.49 473.1,-284.99 483.1,-288.49 483.1,-281.49"/>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.cni -->
+<g id="node18" class="node" pointer-events="visible" data-name="module.iam.aws_iam_role_policy_attachment.cni">
+
+<polygon fill="none" stroke="black" points="869.39,-140.99 644.31,-140.99 644.31,-104.99 869.39,-104.99 869.39,-140.99"/>
+<text text-anchor="middle" x="756.85" y="-118.79" font-family="sans-serif" font-size="14.00">aws_iam_role_policy_attachment.cni</text>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.cni&#45;&gt;module.iam.aws_iam_role.eks_node -->
+<g id="edge18" class="edge" data-name="module.iam.aws_iam_role_policy_attachment.cni-&gt;module.iam.aws_iam_role.eks_node">
+
+<path fill="none" stroke="black" d="M644.12,-122.99C590.59,-122.99 527.48,-122.99 477.75,-122.99"/>
+<polygon fill="black" stroke="black" points="477.9,-119.49 467.9,-122.99 477.9,-126.49 477.9,-119.49"/>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.ecr -->
+<g id="node19" class="node" pointer-events="visible" data-name="module.iam.aws_iam_role_policy_attachment.ecr">
+
+<polygon fill="none" stroke="black" points="869.38,-86.99 644.32,-86.99 644.32,-50.99 869.38,-50.99 869.38,-86.99"/>
+<text text-anchor="middle" x="756.85" y="-64.79" font-family="sans-serif" font-size="14.00">aws_iam_role_policy_attachment.ecr</text>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.ecr&#45;&gt;module.iam.aws_iam_role.eks_node -->
+<g id="edge19" class="edge" data-name="module.iam.aws_iam_role_policy_attachment.ecr-&gt;module.iam.aws_iam_role.eks_node">
+
+<path fill="none" stroke="black" d="M644.12,-85.56C590.59,-93.5 527.48,-102.86 477.75,-110.23"/>
+<polygon fill="black" stroke="black" points="477.26,-106.77 467.88,-111.7 478.29,-113.69 477.26,-106.77"/>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.ssm -->
+<g id="node20" class="node" pointer-events="visible" data-name="module.iam.aws_iam_role_policy_attachment.ssm">
+
+<polygon fill="none" stroke="black" points="872.07,-248.99 641.62,-248.99 641.62,-212.99 872.07,-212.99 872.07,-248.99"/>
+<text text-anchor="middle" x="756.85" y="-226.79" font-family="sans-serif" font-size="14.00">aws_iam_role_policy_attachment.ssm</text>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.ssm&#45;&gt;module.iam.aws_iam_role.eks_node -->
+<g id="edge20" class="edge" data-name="module.iam.aws_iam_role_policy_attachment.ssm-&gt;module.iam.aws_iam_role.eks_node">
+
+<path fill="none" stroke="black" d="M647.75,-212.52C635.95,-209.92 624.17,-207.08 612.97,-203.99 554.86,-187.98 490.35,-163.57 446.05,-145.73"/>
+<polygon fill="black" stroke="black" points="447.51,-142.54 436.92,-142.02 444.88,-149.03 447.51,-142.54"/>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.worker_node -->
+<g id="node21" class="node" pointer-events="visible" data-name="module.iam.aws_iam_role_policy_attachment.worker_node">
+
+<polygon fill="none" stroke="black" points="898.15,-194.99 615.55,-194.99 615.55,-158.99 898.15,-158.99 898.15,-194.99"/>
+<text text-anchor="middle" x="756.85" y="-172.79" font-family="sans-serif" font-size="14.00">aws_iam_role_policy_attachment.worker_node</text>
+</g>
+<!-- module.iam.aws_iam_role_policy_attachment.worker_node&#45;&gt;module.iam.aws_iam_role.eks_node -->
+<g id="edge21" class="edge" data-name="module.iam.aws_iam_role_policy_attachment.worker_node-&gt;module.iam.aws_iam_role.eks_node">
+
+<path fill="none" stroke="black" d="M631.3,-158.52C580.8,-151.03 523.71,-142.57 477.94,-135.78"/>
+<polygon fill="black" stroke="black" points="478.46,-132.32 468.05,-134.31 477.43,-139.24 478.46,-132.32"/>
+</g>
+<!-- module.rds.aws_db_instance.this -->
+<g id="node22" class="node" pointer-events="visible" data-name="module.rds.aws_db_instance.this">
+
+<polygon fill="none" stroke="black" points="1114.85,-997.99 979.11,-997.99 979.11,-961.99 1114.85,-961.99 1114.85,-997.99"/>
+<text text-anchor="middle" x="1046.98" y="-975.79" font-family="sans-serif" font-size="14.00">aws_db_instance.this</text>
+</g>
+<!-- module.rds.aws_db_subnet_group.this -->
+<g id="node23" class="node" pointer-events="visible" data-name="module.rds.aws_db_subnet_group.this">
+
+<polygon fill="none" stroke="black" points="839.56,-997.99 674.13,-997.99 674.13,-961.99 839.56,-961.99 839.56,-997.99"/>
+<text text-anchor="middle" x="756.85" y="-975.79" font-family="sans-serif" font-size="14.00">aws_db_subnet_group.this</text>
+</g>
+<!-- module.rds.aws_db_instance.this&#45;&gt;module.rds.aws_db_subnet_group.this -->
+<g id="edge22" class="edge" data-name="module.rds.aws_db_instance.this-&gt;module.rds.aws_db_subnet_group.this">
+
+<path fill="none" stroke="black" d="M978.79,-979.99C940.78,-979.99 892.68,-979.99 851.08,-979.99"/>
+<polygon fill="black" stroke="black" points="851.32,-976.49 841.32,-979.99 851.32,-983.49 851.32,-976.49"/>
+</g>
+<!-- module.rds_sg.aws_security_group.this -->
+<g id="node24" class="node" pointer-events="visible" data-name="module.rds_sg.aws_security_group.this">
+
+<polygon fill="none" stroke="black" points="833.33,-1082.99 680.37,-1082.99 680.37,-1046.99 833.33,-1046.99 833.33,-1082.99"/>
+<text text-anchor="middle" x="756.85" y="-1060.79" font-family="sans-serif" font-size="14.00">aws_security_group.this</text>
+</g>
+<!-- module.rds.aws_db_instance.this&#45;&gt;module.rds_sg.aws_security_group.this -->
+<g id="edge23" class="edge" data-name="module.rds.aws_db_instance.this-&gt;module.rds_sg.aws_security_group.this">
+
+<path fill="none" stroke="black" d="M1005.84,-998.37C978.84,-1010.15 942.19,-1025.05 908.72,-1034.99 888.32,-1041.05 866.01,-1046.24 844.94,-1050.52"/>
+<polygon fill="black" stroke="black" points="844.34,-1047.07 835.21,-1052.45 845.7,-1053.94 844.34,-1047.07"/>
+</g>
+<!-- module.rds.aws_db_subnet_group.this&#45;&gt;module.vpc.aws_subnet.private -->
+<g id="edge24" class="edge" data-name="module.rds.aws_db_subnet_group.this-&gt;module.vpc.aws_subnet.private">
+
+<path fill="none" stroke="black" d="M673.81,-980.18C651.07,-976.06 628.42,-967.29 612.97,-949.99 568.68,-900.37 630.93,-700.07 584.97,-651.99 554.59,-620.21 505.34,-613.71 464.16,-615.03"/>
+<polygon fill="black" stroke="black" points="464.11,-611.53 454.29,-615.52 464.46,-618.52 464.11,-611.53"/>
+</g>
+<!-- module.rds_sg.aws_security_group.this&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge25" class="edge" data-name="module.rds_sg.aws_security_group.this-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M680.04,-1065.36C564.18,-1061.94 342.03,-1039.2 204.47,-921.99 137.77,-865.16 108.94,-759.93 98.41,-708.64"/>
+<polygon fill="black" stroke="black" points="101.86,-708.03 96.51,-698.88 94.99,-709.37 101.86,-708.03"/>
+</g>
+<!-- module.s3.aws_s3_bucket_public_access_block.frontend -->
+<g id="node26" class="node" pointer-events="visible" data-name="module.s3.aws_s3_bucket_public_access_block.frontend">
+
+<polygon fill="none" stroke="black" points="528.53,-1360.99 252.91,-1360.99 252.91,-1324.99 528.53,-1324.99 528.53,-1360.99"/>
+<text text-anchor="middle" x="390.72" y="-1338.79" font-family="sans-serif" font-size="14.00">aws_s3_bucket_public_access_block.frontend</text>
+</g>
+<!-- module.s3.aws_s3_bucket_public_access_block.frontend&#45;&gt;module.s3.aws_s3_bucket.frontend -->
+<g id="edge26" class="edge" data-name="module.s3.aws_s3_bucket_public_access_block.frontend-&gt;module.s3.aws_s3_bucket.frontend">
+
+<path fill="none" stroke="black" d="M252.58,-1327.86C236.2,-1324.63 219.84,-1320.72 204.47,-1315.99 180.24,-1308.54 154.71,-1296.48 134.22,-1285.64"/>
+<polygon fill="black" stroke="black" points="136.09,-1282.68 125.63,-1281 132.76,-1288.84 136.09,-1282.68"/>
+</g>
+<!-- module.s3.aws_s3_bucket_server_side_encryption_configuration.frontend -->
+<g id="node27" class="node" pointer-events="visible" data-name="module.s3.aws_s3_bucket_server_side_encryption_configuration.frontend">
+
+<polygon fill="none" stroke="black" points="576.73,-1306.99 204.71,-1306.99 204.71,-1270.99 576.73,-1270.99 576.73,-1306.99"/>
+<text text-anchor="middle" x="390.72" y="-1284.79" font-family="sans-serif" font-size="14.00">aws_s3_bucket_server_side_encryption_configuration.frontend</text>
+</g>
+<!-- module.s3.aws_s3_bucket_server_side_encryption_configuration.frontend&#45;&gt;module.s3.aws_s3_bucket.frontend -->
+<g id="edge27" class="edge" data-name="module.s3.aws_s3_bucket_server_side_encryption_configuration.frontend-&gt;module.s3.aws_s3_bucket.frontend">
+
+<path fill="none" stroke="black" d="M204.48,-1272.12C196.22,-1271.37 188.13,-1270.63 180.31,-1269.92"/>
+<polygon fill="black" stroke="black" points="180.84,-1266.46 170.57,-1269.03 180.21,-1273.43 180.84,-1266.46"/>
+</g>
+<!-- module.s3.aws_s3_bucket_versioning.frontend -->
+<g id="node28" class="node" pointer-events="visible" data-name="module.s3.aws_s3_bucket_versioning.frontend">
+
+<polygon fill="none" stroke="black" points="499.79,-1252.99 281.65,-1252.99 281.65,-1216.99 499.79,-1216.99 499.79,-1252.99"/>
+<text text-anchor="middle" x="390.72" y="-1230.79" font-family="sans-serif" font-size="14.00">aws_s3_bucket_versioning.frontend</text>
+</g>
+<!-- module.s3.aws_s3_bucket_versioning.frontend&#45;&gt;module.s3.aws_s3_bucket.frontend -->
+<g id="edge28" class="edge" data-name="module.s3.aws_s3_bucket_versioning.frontend-&gt;module.s3.aws_s3_bucket.frontend">
+
+<path fill="none" stroke="black" d="M281.42,-1244.85C248.13,-1247.89 211.93,-1251.18 180.25,-1254.07"/>
+<polygon fill="black" stroke="black" points="179.95,-1250.58 170.3,-1254.97 180.58,-1257.55 179.95,-1250.58"/>
+</g>
+<!-- module.vpc.aws_eip.nat -->
+<g id="node29" class="node" pointer-events="visible" data-name="module.vpc.aws_eip.nat">
+
+<polygon fill="none" stroke="black" points="432.2,-750.99 349.24,-750.99 349.24,-714.99 432.2,-714.99 432.2,-750.99"/>
+<text text-anchor="middle" x="390.72" y="-728.79" font-family="sans-serif" font-size="14.00">aws_eip.nat</text>
+</g>
+<!-- module.vpc.aws_internet_gateway.this -->
+<g id="node30" class="node" pointer-events="visible" data-name="module.vpc.aws_internet_gateway.this">
+
+<polygon fill="none" stroke="black" points="473.12,-858.99 308.32,-858.99 308.32,-822.99 473.12,-822.99 473.12,-858.99"/>
+<text text-anchor="middle" x="390.72" y="-836.79" font-family="sans-serif" font-size="14.00">aws_internet_gateway.this</text>
+</g>
+<!-- module.vpc.aws_internet_gateway.this&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge29" class="edge" data-name="module.vpc.aws_internet_gateway.this-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M308.08,-841.79C274.2,-839 235.61,-831.54 204.47,-813.99 160.02,-788.94 126,-738.63 107.87,-707"/>
+<polygon fill="black" stroke="black" points="110.99,-705.41 103.07,-698.37 104.87,-708.81 110.99,-705.41"/>
+</g>
+<!-- module.vpc.aws_nat_gateway.this -->
+<g id="node31" class="node" pointer-events="visible" data-name="module.vpc.aws_nat_gateway.this">
+
+<polygon fill="none" stroke="black" points="826.59,-750.99 687.1,-750.99 687.1,-714.99 826.59,-714.99 826.59,-750.99"/>
+<text text-anchor="middle" x="756.85" y="-728.79" font-family="sans-serif" font-size="14.00">aws_nat_gateway.this</text>
+</g>
+<!-- module.vpc.aws_nat_gateway.this&#45;&gt;module.vpc.aws_eip.nat -->
+<g id="edge30" class="edge" data-name="module.vpc.aws_nat_gateway.this-&gt;module.vpc.aws_eip.nat">
+
+<path fill="none" stroke="black" d="M686.93,-732.99C616.28,-732.99 507.96,-732.99 444.05,-732.99"/>
+<polygon fill="black" stroke="black" points="444.16,-729.49 434.16,-732.99 444.16,-736.49 444.16,-729.49"/>
+</g>
+<!-- module.vpc.aws_nat_gateway.this&#45;&gt;module.vpc.aws_internet_gateway.this -->
+<g id="edge31" class="edge" data-name="module.vpc.aws_nat_gateway.this-&gt;module.vpc.aws_internet_gateway.this">
+
+<path fill="none" stroke="black" d="M686.85,-742.2C661.87,-748.03 634.53,-757.53 612.97,-772.99 595.04,-785.85 603.73,-802.36 584.97,-813.99 555.36,-832.36 518.34,-840.33 484.65,-843.29"/>
+<polygon fill="black" stroke="black" points="484.6,-839.78 474.87,-844 485.1,-846.76 484.6,-839.78"/>
+</g>
+<!-- module.vpc.aws_subnet.public -->
+<g id="node39" class="node" pointer-events="visible" data-name="module.vpc.aws_subnet.public">
+
+<polygon fill="none" stroke="black" points="450.54,-804.99 330.9,-804.99 330.9,-768.99 450.54,-768.99 450.54,-804.99"/>
+<text text-anchor="middle" x="390.72" y="-782.79" font-family="sans-serif" font-size="14.00">aws_subnet.public</text>
+</g>
+<!-- module.vpc.aws_nat_gateway.this&#45;&gt;module.vpc.aws_subnet.public -->
+<g id="edge32" class="edge" data-name="module.vpc.aws_nat_gateway.this-&gt;module.vpc.aws_subnet.public">
+
+<path fill="none" stroke="black" d="M686.88,-744.18C655.77,-749.15 618.54,-755 584.97,-759.99 544.28,-766.05 498.71,-772.43 462.04,-777.48"/>
+<polygon fill="black" stroke="black" points="461.9,-773.96 452.46,-778.79 462.85,-780.9 461.9,-773.96"/>
+</g>
+<!-- module.vpc.aws_route.private_internet_access -->
+<g id="node32" class="node" pointer-events="visible" data-name="module.vpc.aws_route.private_internet_access">
+
+<polygon fill="none" stroke="black" points="1151.4,-727.99 942.56,-727.99 942.56,-691.99 1151.4,-691.99 1151.4,-727.99"/>
+<text text-anchor="middle" x="1046.98" y="-705.79" font-family="sans-serif" font-size="14.00">aws_route.private_internet_access</text>
+</g>
+<!-- module.vpc.aws_route.private_internet_access&#45;&gt;module.vpc.aws_nat_gateway.this -->
+<g id="edge33" class="edge" data-name="module.vpc.aws_route.private_internet_access-&gt;module.vpc.aws_nat_gateway.this">
+
+<path fill="none" stroke="black" d="M942.36,-718.26C908.02,-721 870.33,-724.01 838.02,-726.59"/>
+<polygon fill="black" stroke="black" points="838.03,-723.08 828.34,-727.37 838.59,-730.06 838.03,-723.08"/>
+</g>
+<!-- module.vpc.aws_route_table.private -->
+<g id="node34" class="node" pointer-events="visible" data-name="module.vpc.aws_route_table.private">
+
+<polygon fill="none" stroke="black" points="465.83,-696.99 315.61,-696.99 315.61,-660.99 465.83,-660.99 465.83,-696.99"/>
+<text text-anchor="middle" x="390.72" y="-674.79" font-family="sans-serif" font-size="14.00">aws_route_table.private</text>
+</g>
+<!-- module.vpc.aws_route.private_internet_access&#45;&gt;module.vpc.aws_route_table.private -->
+<g id="edge34" class="edge" data-name="module.vpc.aws_route.private_internet_access-&gt;module.vpc.aws_route_table.private">
+
+<path fill="none" stroke="black" d="M942.31,-705.08C813.68,-698.99 596.76,-688.71 477.2,-683.04"/>
+<polygon fill="black" stroke="black" points="477.6,-679.56 467.45,-682.58 477.27,-686.55 477.6,-679.56"/>
+</g>
+<!-- module.vpc.aws_route.public_internet_access -->
+<g id="node33" class="node" pointer-events="visible" data-name="module.vpc.aws_route.public_internet_access">
+
+<polygon fill="none" stroke="black" points="858.89,-898.99 654.81,-898.99 654.81,-862.99 858.89,-862.99 858.89,-898.99"/>
+<text text-anchor="middle" x="756.85" y="-876.79" font-family="sans-serif" font-size="14.00">aws_route.public_internet_access</text>
+</g>
+<!-- module.vpc.aws_route.public_internet_access&#45;&gt;module.vpc.aws_internet_gateway.this -->
+<g id="edge35" class="edge" data-name="module.vpc.aws_route.public_internet_access-&gt;module.vpc.aws_internet_gateway.this">
+
+<path fill="none" stroke="black" d="M654.42,-869.85C601.19,-864 536.44,-856.89 484.54,-851.19"/>
+<polygon fill="black" stroke="black" points="485.16,-847.74 474.84,-850.12 484.4,-854.69 485.16,-847.74"/>
+</g>
+<!-- module.vpc.aws_route_table.public -->
+<g id="node35" class="node" pointer-events="visible" data-name="module.vpc.aws_route_table.public">
+
+<polygon fill="none" stroke="black" points="463.96,-912.99 317.48,-912.99 317.48,-876.99 463.96,-876.99 463.96,-912.99"/>
+<text text-anchor="middle" x="390.72" y="-890.79" font-family="sans-serif" font-size="14.00">aws_route_table.public</text>
+</g>
+<!-- module.vpc.aws_route.public_internet_access&#45;&gt;module.vpc.aws_route_table.public -->
+<g id="edge36" class="edge" data-name="module.vpc.aws_route.public_internet_access-&gt;module.vpc.aws_route_table.public">
+
+<path fill="none" stroke="black" d="M654.42,-884.89C598.15,-887.06 529.01,-889.71 475.78,-891.76"/>
+<polygon fill="black" stroke="black" points="475.71,-888.26 465.85,-892.14 475.98,-895.26 475.71,-888.26"/>
+</g>
+<!-- module.vpc.aws_route_table.private&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge37" class="edge" data-name="module.vpc.aws_route_table.private-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M315.29,-678.99C263.42,-678.99 195.37,-678.99 148.34,-678.99"/>
+<polygon fill="black" stroke="black" points="148.37,-675.49 138.37,-678.99 148.37,-682.49 148.37,-675.49"/>
+</g>
+<!-- module.vpc.aws_route_table.public&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge38" class="edge" data-name="module.vpc.aws_route_table.public-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M317.18,-898.71C280.63,-897.22 237.24,-890.02 204.47,-867.99 147.15,-829.47 115.22,-750.66 101.47,-707.99"/>
+<polygon fill="black" stroke="black" points="104.88,-707.19 98.59,-698.67 98.2,-709.26 104.88,-707.19"/>
+</g>
+<!-- module.vpc.aws_route_table_association.private -->
+<g id="node36" class="node" pointer-events="visible" data-name="module.vpc.aws_route_table_association.private">
+
+<polygon fill="none" stroke="black" points="866.67,-654.99 647.03,-654.99 647.03,-618.99 866.67,-618.99 866.67,-654.99"/>
+<text text-anchor="middle" x="756.85" y="-632.79" font-family="sans-serif" font-size="14.00">aws_route_table_association.private</text>
+</g>
+<!-- module.vpc.aws_route_table_association.private&#45;&gt;module.vpc.aws_route_table.private -->
+<g id="edge39" class="edge" data-name="module.vpc.aws_route_table_association.private-&gt;module.vpc.aws_route_table.private">
+
+<path fill="none" stroke="black" d="M646.6,-649.59C592.46,-655.84 528.03,-663.27 477.49,-669.1"/>
+<polygon fill="black" stroke="black" points="477.31,-665.6 467.78,-670.22 478.12,-672.55 477.31,-665.6"/>
+</g>
+<!-- module.vpc.aws_route_table_association.private&#45;&gt;module.vpc.aws_subnet.private -->
+<g id="edge40" class="edge" data-name="module.vpc.aws_route_table_association.private-&gt;module.vpc.aws_subnet.private">
+
+<path fill="none" stroke="black" d="M646.6,-633.39C587.59,-631.45 516.36,-629.1 464.22,-627.38"/>
+<polygon fill="black" stroke="black" points="464.35,-623.88 454.24,-627.05 464.12,-630.88 464.35,-623.88"/>
+</g>
+<!-- module.vpc.aws_route_table_association.public -->
+<g id="node37" class="node" pointer-events="visible" data-name="module.vpc.aws_route_table_association.public">
+
+<polygon fill="none" stroke="black" points="864.79,-817.99 648.9,-817.99 648.9,-781.99 864.79,-781.99 864.79,-817.99"/>
+<text text-anchor="middle" x="756.85" y="-795.79" font-family="sans-serif" font-size="14.00">aws_route_table_association.public</text>
+</g>
+<!-- module.vpc.aws_route_table_association.public&#45;&gt;module.vpc.aws_route_table.public -->
+<g id="edge41" class="edge" data-name="module.vpc.aws_route_table_association.public-&gt;module.vpc.aws_route_table.public">
+
+<path fill="none" stroke="black" d="M703.08,-818.47C675.89,-828.36 642.37,-841.13 612.97,-853.99 600.23,-859.57 598.26,-863.86 584.97,-867.99 549.8,-878.92 509.64,-885.44 475.08,-889.32"/>
+<polygon fill="black" stroke="black" points="475.14,-885.79 465.57,-890.33 475.88,-892.75 475.14,-885.79"/>
+</g>
+<!-- module.vpc.aws_route_table_association.public&#45;&gt;module.vpc.aws_subnet.public -->
+<g id="edge42" class="edge" data-name="module.vpc.aws_route_table_association.public-&gt;module.vpc.aws_subnet.public">
+
+<path fill="none" stroke="black" d="M648.57,-796.16C588.37,-794.01 514.97,-791.39 462.08,-789.5"/>
+<polygon fill="black" stroke="black" points="462.41,-786.01 452.29,-789.15 462.16,-793.01 462.41,-786.01"/>
+</g>
+<!-- module.vpc.aws_subnet.private&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge43" class="edge" data-name="module.vpc.aws_subnet.private-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M328.57,-632.44C292.35,-637.22 245.63,-644.01 204.47,-651.99 185.97,-655.58 165.93,-660.21 148.01,-664.62"/>
+<polygon fill="black" stroke="black" points="147.2,-661.21 138.34,-667.03 148.89,-668.01 147.2,-661.21"/>
+</g>
+<!-- module.vpc.aws_subnet.public&#45;&gt;module.vpc.aws_vpc.this -->
+<g id="edge44" class="edge" data-name="module.vpc.aws_subnet.public-&gt;module.vpc.aws_vpc.this">
+
+<path fill="none" stroke="black" d="M330.66,-785.61C293.3,-783.01 244.65,-776.37 204.47,-759.99 172.91,-747.13 141.99,-723.46 120.79,-705.01"/>
+<polygon fill="black" stroke="black" points="123.26,-702.52 113.46,-698.48 118.6,-707.75 123.26,-702.52"/>
+</g>
+</g>
+</svg>

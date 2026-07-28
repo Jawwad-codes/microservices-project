@@ -6,7 +6,7 @@ on:
   workflow_run:
     workflows: ["Backend CI"]
     types: [completed]
-    branches: [development]
+    branches: [main]
 
 permissions:
   contents: read
@@ -35,9 +35,6 @@ jobs:
           SHA_FULL: ${{ github.event.workflow_run.head_sha }}
         run: echo "tag=${SHA_FULL:0:7}" >> "$GITHUB_OUTPUT"
 
-  # ============================================================
-  # JOB: SECRETS + CONFIGMAP + INGRESS
-  # ============================================================
   apply-config:
     needs: check-ci-success
     runs-on: ubuntu-latest
@@ -54,16 +51,16 @@ jobs:
       - name: Verify AWS identity
         run: aws sts get-caller-identity
 
-      - name: EKS cluster se connect karo
+      - name: Connect with EKS cluster
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-      - name: Namespace ready karo
+      - name: create namespace
         run: kubectl apply -f k8s/namespace/
 
-      - name: ConfigMap apply karo
+      - name: apply config
         run: kubectl apply -f k8s/configmaps/ -n ${{ env.NAMESPACE }}
 
-      - name: Har service ke liye secret banao/update karo
+      - name: apply secret for each service
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
@@ -86,7 +83,7 @@ jobs:
               --dry-run=client -o yaml | kubectl apply -f -
           done
 
-      - name: api-gateway ke liye secret banao (DB nahi hai, sirf JWT)
+      - name: apply secret for api-gateway
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
@@ -152,9 +149,6 @@ jobs:
             job/${{ matrix.job }} \
             -n ${{ env.NAMESPACE }}
 
-  # ============================================================
-  # JOB: DEPLOY
-  # ============================================================
   deploy:
     needs: [check-ci-success, apply-config, "db-migrations"]
     runs-on: ubuntu-latest
@@ -173,30 +167,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: AWS mein login karo
+      - name: AWS Login
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: EKS cluster se connect karo
+      - name: Connect with EKS
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
-      - name: Deployment + Service manifest apply karo
+      - name: apply Deployment + Service manifest
         run: |
           kubectl apply -f k8s/${{ matrix.service }}/deployment.yaml -n ${{ env.NAMESPACE }}
           kubectl apply -f k8s/${{ matrix.service }}/service.yaml -n ${{ env.NAMESPACE }}
 
-      - name: Naya image set karo (rolling update start hoga)
+      - name: set New image
         run: |
           kubectl set image deployment/${{ matrix.service }} \
             ${{ matrix.service }}=${{ env.ECR_REGISTRY }}/${{ matrix.service }}:${{ needs.check-ci-success.outputs.image_tag }} \
             -n ${{ env.NAMESPACE }}
 
-      - name: Rollout complete hone ka wait karo
+      - name: wait for Rollout complete
         run: kubectl rollout status deployment/${{ matrix.service }} -n ${{ env.NAMESPACE }} --timeout=180s
 
-      - name: Agar fail ho jaye to purane version pe wapis jao
+      - name: go to previous version if new one is fail
         if: failure()
         run: kubectl rollout undo deployment/${{ matrix.service }} -n ${{ env.NAMESPACE }}
