@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "notification-service",
   "version": "1.0.0",
   "description": "Notification microservice with persistence",
