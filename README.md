@@ -24,7 +24,7 @@ ShopFlow is a database-per-service e-commerce backend running on Amazon EKS, pai
 
 ## 🏗 System Architecture
 
-![AWS Architecture](./architecture.svg)
+![AWS Architecture](./microservices-architecture.png)
 
 ```text
 Browser ──► jawwad.online ──► CloudFront (ACM SSL) ──► S3 (private, OAC-only)
