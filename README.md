@@ -1,28 +1,20 @@
-# 🚀 ShopFlow — Cloud-Native Microservices Platform on AWS EKS
+# ShopFlow — E-commerce Microservices on AWS EKS
 
-> A production-inspired e-commerce microservices platform deployed on **Amazon EKS**, provisioned with **Terraform**, and delivered through **CloudFront**, **NGINX Ingress**, and **GitHub Actions CI/CD**.
-
-![AWS](https://img.shields.io/badge/AWS-EKS-orange?logo=amazonaws)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-623CE4?logo=terraform)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-Orchestration-326CE5?logo=kubernetes)
-![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?logo=docker)
-![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-2088FF?logo=githubactions)
-![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-RDS-336791?logo=postgresql)
-![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma)
-![cert--manager](https://img.shields.io/badge/cert--manager-Let's%20Encrypt-2fa4e7)
+A database-per-service e-commerce backend I built and deployed on Amazon EKS, with the infrastructure provisioned entirely through Terraform and a React frontend served from S3 through CloudFront.
 
 **Live domains:** `jawwad.online` (frontend) · `api.jawwad.online` (API gateway)
 
 ---
 
-## 📌 Overview
+## Overview
 
-ShopFlow is a database-per-service e-commerce backend running on Amazon EKS, paired with a React frontend served from S3 through CloudFront. Six independent services communicate over HTTP behind an API Gateway, each owning its own PostgreSQL database on a single shared Amazon RDS instance. TLS is issued automatically by cert-manager using Let's Encrypt, and the entire cloud footprint — networking, compute, database, CDN, and registry — is defined as code in Terraform.
+ShopFlow is six independent services talking to each other over HTTP behind an API Gateway. Each service owns its own PostgreSQL database, all running on a single shared Amazon RDS instance. TLS is handled automatically by cert-manager with Let's Encrypt, and the whole cloud footprint — networking, compute, database, CDN, registry — is defined as code in Terraform rather than clicked together in the console.
+
+I built this to get hands-on with running a real multi-service system on EKS end to end: provisioning the cluster, writing the CI/CD pipeline, wiring up ingress and TLS, and dealing with all the small production issues that don't show up in tutorials.
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 ![AWS Architecture](./microservices-architecture.png)
 
@@ -41,32 +33,33 @@ Browser ──► api.jawwad.online ──► AWS Load Balancer ──► NGINX 
                           (user_db · product_db · order_db · payment_db · notification_db)
 ```
 
-`order-service` orchestrates checkout server-to-server, bypassing the gateway:
+`order-service` handles checkout orchestration itself, going server-to-server rather than back through the gateway:
+
 ```
-order-service → product-service    (validate + decrement stock)
-order-service → payment-service    (process payment)
+order-service → product-service      (validate + decrement stock)
+order-service → payment-service      (process payment)
 order-service → notification-service (send confirmation email)
 ```
 
 ---
 
-## ✨ Features
+## Features
 
-- ✅ Infrastructure as Code with Terraform (11 modules, see below)
-- ✅ Amazon EKS with managed node group, coredns / kube-proxy / vpc-cni add-ons
-- ✅ Database-per-service on a single Amazon RDS PostgreSQL instance
-- ✅ Prisma ORM with per-service migrations
-- ✅ NGINX Ingress Controller + AWS Load Balancer
-- ✅ Automatic TLS via cert-manager + Let's Encrypt (HTTP-01 challenge)
-- ✅ Frontend on S3 + CloudFront with Origin Access Control (no public bucket)
-- ✅ Amazon ECR image registry with lifecycle policy
-- ✅ GitHub Actions CI/CD — build, scan, push, migrate, deploy
-- ✅ Kubernetes Secrets & ConfigMaps per service
-- ✅ Fully private RDS and worker nodes (no public subnet exposure)
+- Infrastructure as code with Terraform — 11 modules, covering everything from VPC to CDN
+- Amazon EKS with a managed node group, plus coredns / kube-proxy / vpc-cni add-ons
+- Database-per-service, all on one Amazon RDS PostgreSQL instance
+- Prisma ORM with per-service migrations
+- NGINX Ingress Controller behind an AWS Load Balancer
+- Automatic TLS via cert-manager + Let's Encrypt (HTTP-01 challenge)
+- Frontend on S3 + CloudFront with Origin Access Control — no public bucket
+- Amazon ECR registry with a lifecycle policy
+- GitHub Actions CI/CD: build, scan, push, migrate, deploy
+- Kubernetes Secrets & ConfigMaps per service
+- Fully private RDS and worker nodes — no public subnet exposure
 
 ---
 
-## ☁ AWS Infrastructure (Terraform modules)
+## AWS Infrastructure (Terraform modules)
 
 | Module | Resources |
 |---|---|
@@ -85,7 +78,7 @@ Full dependency graph: [`terraform-graph.dot`](./terraform-graph.dot)
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 microservices-project
@@ -122,7 +115,7 @@ microservices-project
 
 ---
 
-## 🛠 Technology Stack
+## Tech Stack
 
 | Category | Technologies |
 |---|---|
@@ -141,9 +134,9 @@ microservices-project
 
 ---
 
-## ☸ Services & Databases
+## Services & Databases
 
-Every service owns an isolated PostgreSQL database — no shared tables, no cross-database joins. Services only talk to each other over HTTP.
+Every service owns an isolated PostgreSQL database — no shared tables, no cross-database joins. Services only ever talk to each other over HTTP.
 
 | Service | Port | Database | Notes |
 |---|---|---|---|
@@ -170,7 +163,7 @@ pending → paid → (cancelled)
 
 ---
 
-## 🔄 CI/CD Pipeline (GitHub Actions)
+## CI/CD Pipeline (GitHub Actions)
 
 ```text
 Push to main
@@ -194,20 +187,22 @@ kubectl apply — ConfigMaps, Secrets, Deployments
 Rolling update (zero downtime)
 ```
 
+Getting this pipeline stable took a few rounds — I had to speed up the Trivy scan step (it was crawling until I scoped it down to `scanners: "vuln"`), and added concurrency control, timeouts, and an automatic rollout undo on failed deploys so a bad push doesn't leave the cluster half-updated.
+
 ---
 
-## 🔐 Security & Networking
+## Security & Networking
 
-- **Private RDS** — no public accessibility, single security group (`rds-sg`) allowing inbound `5432` only from the EKS node security group
-- **Private worker nodes** — EKS node group lives in private subnets, egress via NAT Gateway
-- **Private S3 bucket** — public access fully blocked; CloudFront reaches it only via Origin Access Control (OAC) and a scoped bucket policy
+- **Private RDS** — no public accessibility, a single security group (`rds-sg`) allowing inbound `5432` only from the EKS node security group
+- **Private worker nodes** — the EKS node group lives in private subnets, egress via NAT Gateway
+- **Private S3 bucket** — public access fully blocked; CloudFront reaches it only through Origin Access Control (OAC) and a scoped bucket policy
 - **HTTPS end-to-end** — CloudFront terminates TLS via ACM for the frontend; cert-manager + Let's Encrypt issues TLS for `api.jawwad.online` via HTTP-01 challenge on the NGINX Ingress
 - **Kubernetes Secrets** — per-service `DATABASE_URL` and `JWT_SECRET`, never committed to source control
 - **IAM least privilege** — separate roles for the EKS cluster and node group, scoped policy attachments (CNI, ECR pull, SSM, worker node policy)
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### 1. Provision infrastructure
 
@@ -261,7 +256,7 @@ Expected response:
 
 ---
 
-## 🧪 Local Development
+## Local Development
 
 ### Prerequisites
 
@@ -320,7 +315,7 @@ Open **http://localhost:3000**.
 
 ---
 
-## 📖 API Reference
+## API Reference
 
 ### User Service (`/api/auth`, `/api/users`)
 
@@ -371,7 +366,7 @@ Open **http://localhost:3000**.
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Backend tests use Jest + Supertest (Prisma and Axios mocked). Frontend tests use Vitest + React Testing Library.
 
@@ -387,26 +382,34 @@ cd frontend && npm run test:coverage
 
 ---
 
-## 📈 Future Improvements
+## Notes from building this
 
-- ArgoCD GitOps
-- Helm charts
-- Prometheus + Grafana + Loki observability stack
-- Distributed tracing
+A few things that ate the most time along the way, in case they're useful to anyone else:
+
+- A Docker env file saved with a UTF-8 BOM silently made `DATABASE_URL` resolve empty inside the container — nothing in the logs pointed at encoding as the cause.
+- Prisma's client needs `libssl` in the runtime image, not just the build stage, or you get cryptic failures on pod start.
+- Missing secrets show up as `CreateContainerConfigError` on the pod, not as an error in the deployment itself, so check `kubectl describe pod` early.
+- Ran into a stubborn RDS password authentication issue that took a while to track down — worth double-checking URL-encoding on special characters in the connection string before anything else.
+- Dropped a fragile `db-init` Kubernetes Job in favor of just creating the databases manually with `kubectl run` — simpler and easier to reason about than debugging a job that only runs once.
+
+---
+
+## What's next
+
+- ArgoCD for GitOps-style deployments
+- Helm charts instead of raw manifests
+- Prometheus + Grafana + Loki for observability
+- Distributed tracing across services
 - AWS WAF in front of CloudFront and the ALB
-- Horizontal Pod Autoscaler / KEDA
+- HPA / KEDA for autoscaling
 - Multi-AZ RDS with automated failover
 - Istio service mesh
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Jawwad Nadeem**
-Software Engineering Student · Aspiring DevOps & Cloud Engineer
+Software Engineering student, focused on DevOps and cloud infrastructure.
 
-AWS · Kubernetes · Terraform · Docker · GitHub Actions · Node.js
-
----
-
-⭐ If you found this project useful, please consider giving it a star!
+If you find this useful or spot something that could be improved, feel free to open an issue or reach out.
